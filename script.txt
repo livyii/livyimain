@@ -1,4 +1,4 @@
--- livyii.main - Full Script + Key Gate + Yuri
+-- livyii.main - Ultra Cutesy Edition
 local Players          = game:GetService("Players")
 local RunService       = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -10,7 +10,7 @@ local LocalPlayer = Players.LocalPlayer
 local Camera      = workspace.CurrentCamera
 local Mouse       = LocalPlayer:GetMouse()
 
--- PROFILES (bypass key system)
+-- PROFILES
 local PROFILES = {
     ["livyiilolly"] = { role = "developer & owner",        emoji = "👑", color = Color3.fromRGB(255, 220, 130), msg = "welcome back, boss!" },
     ["2lmost"]      = { role = "developer",                emoji = "💻", color = Color3.fromRGB(200, 220, 255), msg = "hii rave!" },
@@ -34,24 +34,21 @@ local function getCurrentKey()
     return KEYS[idx], weekNum
 end
 
--- PLATFORM
 local Platform = { isMobile = false }
-
--- 🔒 KEY GATE
 local _keyPassed = false
 
 local Sizes = {
     pc = {
-        mainW = 245, mainH = 305, headerH = 38,
-        btnSize = 24, tileRowH = 46, floatBtn = 54, toggleBtn = 46,
-        titleSize = 12, tileFontSize = 10, statusFontSize = 9,
-        backW = 86, backH = 26,
+        mainW = 250, mainH = 315, headerH = 44,
+        btnSize = 26, tileRowH = 50, floatBtn = 56, toggleBtn = 48,
+        titleSize = 13, tileFontSize = 11, statusFontSize = 9,
+        backW = 90, backH = 28,
     },
     mobile = {
-        mainW = 268, mainH = 335, headerH = 42,
-        btnSize = 28, tileRowH = 52, floatBtn = 62, toggleBtn = 52,
-        titleSize = 13, tileFontSize = 11, statusFontSize = 10,
-        backW = 96, backH = 30,
+        mainW = 272, mainH = 345, headerH = 48,
+        btnSize = 30, tileRowH = 56, floatBtn = 64, toggleBtn = 54,
+        titleSize = 14, tileFontSize = 12, statusFontSize = 10,
+        backW = 100, backH = 32,
     },
 }
 local function sz() return Platform.isMobile and Sizes.mobile or Sizes.pc end
@@ -69,45 +66,52 @@ local Config = {
     Antilock = false,
 }
 
--- YELLOW PALETTE
+-- ULTRA CUTESY PALETTE (brown + yellow + pink accents)
 local P = {
-    BG          = Color3.fromRGB(255, 251, 232),
-    BG_SOFT     = Color3.fromRGB(255, 253, 244),
-    HEADER_A    = Color3.fromRGB(255, 248, 200),
-    HEADER_B    = Color3.fromRGB(255, 236, 170),
-    HEADER_TEXT = Color3.fromRGB(124,  58,  45),
-    BTN_BG      = Color3.fromRGB(255, 255, 250),
-    BTN_BG_ON   = Color3.fromRGB(255, 244, 200),
-    BTN_GRAD_A  = Color3.fromRGB(255, 255, 252),
-    BTN_GRAD_B  = Color3.fromRGB(255, 250, 235),
-    BTN_TEXT    = Color3.fromRGB(139,  90,  43),
-    BTN_TEXT_ON = Color3.fromRGB(107,  68,  35),
-    STROKE      = Color3.fromRGB(240, 220, 160),
-    STROKE_SOFT = Color3.fromRGB(252, 240, 205),
-    TRACK       = Color3.fromRGB(250, 242, 218),
-    FILL_A      = Color3.fromRGB(255, 238, 180),
-    FILL_B      = Color3.fromRGB(238, 205, 130),
-    DOT_OFF     = Color3.fromRGB(238, 230, 210),
-    DOT_ON      = Color3.fromRGB(210, 165, 115),
-    FOOTER      = Color3.fromRGB(178, 148, 118),
-    GEAR_BG     = Color3.fromRGB(255, 250, 225),
-    LOCK_IDLE_A = Color3.fromRGB(255, 250, 220),
-    LOCK_IDLE_B = Color3.fromRGB(255, 240, 190),
-    LOCK_ON_A   = Color3.fromRGB(255, 230, 175),
-    LOCK_ON_B   = Color3.fromRGB(238, 205, 130),
-    HB_IDLE_A   = Color3.fromRGB(255, 250, 220),
-    HB_IDLE_B   = Color3.fromRGB(255, 242, 195),
-    HB_ON_A     = Color3.fromRGB(255, 230, 175),
-    HB_ON_B     = Color3.fromRGB(238, 205, 130),
-    AIM_IDLE_A  = Color3.fromRGB(255, 250, 220),
-    AIM_IDLE_B  = Color3.fromRGB(255, 242, 195),
-    AIM_ON_A    = Color3.fromRGB(255, 225, 165),
-    AIM_ON_B    = Color3.fromRGB(245, 190, 120),
-    TOGGLE_A    = Color3.fromRGB(255, 240, 185),
-    TOGGLE_B    = Color3.fromRGB(238, 205, 130),
-    SHADOW      = Color3.fromRGB(220, 190, 130),
-    ERROR       = Color3.fromRGB(220, 90, 90),
-    SUCCESS     = Color3.fromRGB(140, 190, 120),
+    BG          = Color3.fromRGB(255, 250, 240),
+    BG_SOFT     = Color3.fromRGB(255, 253, 246),
+    HEADER_A    = Color3.fromRGB(255, 245, 195),
+    HEADER_B    = Color3.fromRGB(255, 225, 190),
+    HEADER_TEXT = Color3.fromRGB(140,  75,  70),
+    BTN_BG      = Color3.fromRGB(255, 252, 244),
+    BTN_BG_ON   = Color3.fromRGB(255, 232, 225),
+    BTN_GRAD_A  = Color3.fromRGB(255, 255, 250),
+    BTN_GRAD_B  = Color3.fromRGB(255, 245, 235),
+    BTN_GRAD_ON_A = Color3.fromRGB(255, 235, 228),
+    BTN_GRAD_ON_B = Color3.fromRGB(255, 210, 205),
+    BTN_TEXT    = Color3.fromRGB(150,  95,  75),
+    BTN_TEXT_ON = Color3.fromRGB(200, 100, 120),
+    STROKE      = Color3.fromRGB(255, 220, 180),
+    STROKE_SOFT = Color3.fromRGB(255, 235, 205),
+    STROKE_PINK = Color3.fromRGB(255, 190, 200),
+    TRACK       = Color3.fromRGB(255, 235, 220),
+    FILL_A      = Color3.fromRGB(255, 220, 180),
+    FILL_B      = Color3.fromRGB(255, 185, 190),
+    DOT_OFF     = Color3.fromRGB(255, 225, 200),
+    DOT_ON      = Color3.fromRGB(255, 155, 180),
+    FOOTER      = Color3.fromRGB(200, 150, 130),
+    GEAR_BG     = Color3.fromRGB(255, 240, 235),
+    GEAR_TEXT   = Color3.fromRGB(255, 130, 160),
+    LOCK_IDLE_A = Color3.fromRGB(255, 245, 230),
+    LOCK_IDLE_B = Color3.fromRGB(255, 235, 220),
+    LOCK_ON_A   = Color3.fromRGB(255, 210, 215),
+    LOCK_ON_B   = Color3.fromRGB(255, 165, 195),
+    HB_IDLE_A   = Color3.fromRGB(255, 245, 230),
+    HB_IDLE_B   = Color3.fromRGB(255, 235, 220),
+    HB_ON_A     = Color3.fromRGB(255, 210, 215),
+    HB_ON_B     = Color3.fromRGB(255, 165, 195),
+    AIM_IDLE_A  = Color3.fromRGB(255, 245, 230),
+    AIM_IDLE_B  = Color3.fromRGB(255, 235, 220),
+    AIM_ON_A    = Color3.fromRGB(255, 220, 200),
+    AIM_ON_B    = Color3.fromRGB(255, 175, 160),
+    TOGGLE_A    = Color3.fromRGB(255, 235, 200),
+    TOGGLE_B    = Color3.fromRGB(255, 175, 190),
+    SHADOW      = Color3.fromRGB(255, 200, 190),
+    ERROR       = Color3.fromRGB(230, 110, 130),
+    SUCCESS     = Color3.fromRGB(160, 210, 180),
+    PINK        = Color3.fromRGB(255, 175, 195),
+    PINK_SOFT   = Color3.fromRGB(255, 215, 225),
+    HEART       = Color3.fromRGB(255, 140, 170),
 }
 
 pcall(function()
@@ -123,7 +127,7 @@ local function tween(obj, props, t, style, dir)
 end
 local function corner(parent, r)
     local c = Instance.new("UICorner", parent)
-    c.CornerRadius = UDim.new(0, r or 14)
+    c.CornerRadius = UDim.new(0, r or 16)
     return c
 end
 local function stroke(parent, color, thickness)
@@ -141,9 +145,43 @@ local function gradient(parent, a, b, rot)
 end
 local function pop(obj, amount)
     local base = obj.Size
-    tween(obj, { Size = UDim2.new(base.X.Scale, base.X.Offset + (amount or 6), base.Y.Scale, base.Y.Offset + (amount or 6)) }, 0.08, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-    task.wait(0.09)
-    tween(obj, { Size = base }, 0.15, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+    tween(obj, { Size = UDim2.new(base.X.Scale, base.X.Offset + (amount or 8), base.Y.Scale, base.Y.Offset + (amount or 8)) }, 0.1, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+    task.wait(0.1)
+    tween(obj, { Size = base }, 0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+end
+
+-- 🎀 wobble for buttons
+local function wobble(obj)
+    local baseRot = obj.Rotation
+    tween(obj, { Rotation = baseRot + 6 }, 0.08, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    task.wait(0.08)
+    tween(obj, { Rotation = baseRot - 4 }, 0.08, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    task.wait(0.08)
+    tween(obj, { Rotation = baseRot }, 0.12, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+end
+
+-- 💕 heart pop effect
+local function heartPop(parentGui, atPos)
+    for i = 1, 5 do
+        local h = Instance.new("TextLabel")
+        h.Size = UDim2.new(0, 24, 0, 24)
+        h.Position = UDim2.new(atPos.X.Scale, atPos.X.Offset - 12, atPos.Y.Scale, atPos.Y.Offset - 12)
+        h.BackgroundTransparency = 1
+        h.Text = "💕"
+        h.TextSize = 18
+        h.Font = Enum.Font.GothamBold
+        h.TextTransparency = 0
+        h.ZIndex = 100
+        h.Parent = parentGui
+        local angle = math.random() * math.pi * 2
+        local dist = 30 + math.random() * 20
+        tween(h, {
+            Position = UDim2.new(atPos.X.Scale, atPos.X.Offset - 12 + math.cos(angle) * dist, atPos.Y.Scale, atPos.Y.Offset - 12 + math.sin(angle) * dist),
+            TextTransparency = 1,
+            Rotation = math.random(-30, 30),
+        }, 0.9, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+        task.delay(1, function() h:Destroy() end)
+    end
 end
 
 local function getCursorPos()
@@ -160,6 +198,7 @@ local function parentGui(gui)
     else gui.Parent = CoreGui end
 end
 
+-- ═══ WELCOME TOAST ═══
 local function showWelcomeToast(uname, data)
     local gui = Instance.new("ScreenGui")
     gui.Name = "livyii.welcome"
@@ -169,41 +208,74 @@ local function showWelcomeToast(uname, data)
     parentGui(gui)
 
     local f = Instance.new("Frame")
-    f.Size = UDim2.new(0, 240, 0, 60)
-    f.Position = UDim2.new(0.5, -120, 0, -80)
+    f.Size = UDim2.new(0, 260, 0, 68)
+    f.Position = UDim2.new(0.5, -130, 0, -90)
     f.BackgroundColor3 = P.BG
     f.BorderSizePixel = 0
     f.Parent = gui
-    corner(f, 20)
-    stroke(f, data.color, 2)
+    corner(f, 22)
+    stroke(f, P.PINK, 2.5)
 
     local g = Instance.new("UIGradient", f)
-    g.Color = ColorSequence.new(P.BG_SOFT, P.BG); g.Rotation = 90
+    g.Color = ColorSequence.new(P.BG_SOFT, Color3.fromRGB(255, 240, 235))
+    g.Rotation = 90
+
+    local glow = Instance.new("Frame")
+    glow.Size = UDim2.new(1, 8, 1, 8)
+    glow.Position = UDim2.new(0, -4, 0, -4)
+    glow.BackgroundColor3 = P.PINK_SOFT
+    glow.BackgroundTransparency = 0.7
+    glow.BorderSizePixel = 0
+    glow.ZIndex = -1
+    glow.Parent = f
+    corner(glow, 24)
 
     local emoji = Instance.new("TextLabel")
-    emoji.Size = UDim2.new(0, 40, 1, 0); emoji.Position = UDim2.new(0, 6, 0, 0)
+    emoji.Size = UDim2.new(0, 44, 1, 0); emoji.Position = UDim2.new(0, 8, 0, 0)
     emoji.BackgroundTransparency = 1; emoji.Text = data.emoji
-    emoji.TextSize = 26; emoji.Font = Enum.Font.GothamBold; emoji.Parent = f
+    emoji.TextSize = 30; emoji.Font = Enum.Font.GothamBold; emoji.Parent = f
 
     local nameLbl = Instance.new("TextLabel")
-    nameLbl.Size = UDim2.new(1, -56, 0, 20); nameLbl.Position = UDim2.new(0, 48, 0, 12)
+    nameLbl.Size = UDim2.new(1, -60, 0, 22); nameLbl.Position = UDim2.new(0, 52, 0, 12)
     nameLbl.BackgroundTransparency = 1; nameLbl.Text = data.msg
     nameLbl.TextColor3 = P.HEADER_TEXT; nameLbl.Font = Enum.Font.GothamBold
-    nameLbl.TextSize = 12; nameLbl.TextXAlignment = Enum.TextXAlignment.Left; nameLbl.Parent = f
+    nameLbl.TextSize = 13; nameLbl.TextXAlignment = Enum.TextXAlignment.Left; nameLbl.Parent = f
 
     local roleLbl = Instance.new("TextLabel")
-    roleLbl.Size = UDim2.new(1, -56, 0, 16); roleLbl.Position = UDim2.new(0, 48, 0, 30)
-    roleLbl.BackgroundTransparency = 1; roleLbl.Text = data.role
-    roleLbl.TextColor3 = P.BTN_TEXT; roleLbl.Font = Enum.Font.GothamMedium
+    roleLbl.Size = UDim2.new(1, -60, 0, 16); roleLbl.Position = UDim2.new(0, 52, 0, 34)
+    roleLbl.BackgroundTransparency = 1; roleLbl.Text = "💖 " .. data.role
+    roleLbl.TextColor3 = P.PINK; roleLbl.Font = Enum.Font.GothamMedium
     roleLbl.TextSize = 10; roleLbl.TextXAlignment = Enum.TextXAlignment.Left; roleLbl.Parent = f
 
-    tween(f, { Position = UDim2.new(0.5, -120, 0, 30) }, 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+    -- floating hearts above
+    for i = 1, 3 do
+        local hh = Instance.new("TextLabel")
+        hh.Size = UDim2.new(0, 20, 0, 20)
+        hh.Position = UDim2.new(0.15 * i, 0, -0.3, 0)
+        hh.BackgroundTransparency = 1
+        hh.Text = "💕"
+        hh.TextSize = 14
+        hh.TextTransparency = 1
+        hh.Font = Enum.Font.GothamBold
+        hh.Parent = f
+        task.spawn(function()
+            while hh.Parent do
+                tween(hh, { Position = UDim2.new(0.15 * i, 0, -0.1, 0), TextTransparency = 0 }, 1.2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
+                task.wait(1.2)
+                tween(hh, { Position = UDim2.new(0.15 * i, 0, -0.3, 0), TextTransparency = 0.6 }, 1.2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
+                task.wait(1.2)
+            end
+        end)
+    end
+
+    tween(f, { Position = UDim2.new(0.5, -130, 0, 30) }, 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
     task.wait(2.5)
-    tween(f, { Position = UDim2.new(0.5, -120, 0, -80) }, 0.4, Enum.EasingStyle.Back, Enum.EasingDirection.In)
+    tween(f, { Position = UDim2.new(0.5, -130, 0, -90) }, 0.4, Enum.EasingStyle.Back, Enum.EasingDirection.In)
     task.wait(0.45)
     gui:Destroy()
 end
 
+-- ═══ PLATFORM PICKER ═══
 local function showPlatformPicker(onSelect)
     local gui = Instance.new("ScreenGui")
     gui.Name = "livyii.platform"
@@ -214,46 +286,46 @@ local function showPlatformPicker(onSelect)
     parentGui(gui)
 
     local Frame = Instance.new("Frame")
-    Frame.Size = UDim2.new(0, 300, 0, 200)
-    Frame.Position = UDim2.new(0.5, -150, 0.5, -100)
+    Frame.Size = UDim2.new(0, 310, 0, 210)
+    Frame.Position = UDim2.new(0.5, -155, 0.5, -105)
     Frame.BackgroundColor3 = P.BG
     Frame.BorderSizePixel = 0
     Frame.Active = true
     Frame.Parent = gui
-    corner(Frame, 24)
-    stroke(Frame, P.STROKE_SOFT, 1.5)
+    corner(Frame, 26)
+    stroke(Frame, P.PINK, 2)
 
     do
         local sh = Instance.new("Frame")
         sh.Size = UDim2.new(1, 0, 1, 0); sh.Position = UDim2.new(0, 0, 0, 5)
-        sh.BackgroundColor3 = P.SHADOW; sh.BackgroundTransparency = 0.7
+        sh.BackgroundColor3 = P.SHADOW; sh.BackgroundTransparency = 0.55
         sh.BorderSizePixel = 0; sh.ZIndex = -1; sh.Parent = Frame
-        corner(sh, 24)
+        corner(sh, 26)
     end
 
     do
         local g = Instance.new("UIGradient", Frame)
-        g.Color = ColorSequence.new(Color3.fromRGB(255, 253, 240), Color3.fromRGB(255, 245, 220))
+        g.Color = ColorSequence.new(Color3.fromRGB(255, 253, 245), Color3.fromRGB(255, 245, 235))
         g.Rotation = 90
     end
 
     local Header = Instance.new("TextLabel")
-    Header.Size = UDim2.new(1, 0, 0, 40)
+    Header.Size = UDim2.new(1, 0, 0, 44)
     Header.BackgroundColor3 = P.HEADER_A; Header.BorderSizePixel = 0
-    Header.Text = "🍮  choose your device  🍮"
+    Header.Text = "🎀  choose your device  🎀"
     Header.TextColor3 = P.HEADER_TEXT; Header.Font = Enum.Font.GothamBold
-    Header.TextSize = 13; Header.Parent = Frame
-    corner(Header, 24)
+    Header.TextSize = 14; Header.Parent = Frame
+    corner(Header, 26)
     gradient(Header, P.HEADER_A, P.HEADER_B, 90)
 
     do
         local fix = Instance.new("Frame")
-        fix.Size = UDim2.new(1, 0, 0, 24); fix.Position = UDim2.new(0, 0, 1, -24)
+        fix.Size = UDim2.new(1, 0, 0, 26); fix.Position = UDim2.new(0, 0, 1, -26)
         fix.BackgroundColor3 = P.HEADER_B; fix.BorderSizePixel = 0; fix.Parent = Header
     end
 
     local Sub = Instance.new("TextLabel")
-    Sub.Size = UDim2.new(1, -30, 0, 24); Sub.Position = UDim2.new(0, 15, 0, 50)
+    Sub.Size = UDim2.new(1, -30, 0, 24); Sub.Position = UDim2.new(0, 15, 0, 54)
     Sub.BackgroundTransparency = 1; Sub.Text = "this will optimize the menu for you ✨"
     Sub.TextColor3 = P.BTN_TEXT; Sub.Font = Enum.Font.GothamMedium
     Sub.TextSize = 10; Sub.TextXAlignment = Enum.TextXAlignment.Center
@@ -261,46 +333,52 @@ local function showPlatformPicker(onSelect)
 
     local function makePickBtn(label, emoji, xPos, onPick)
         local b = Instance.new("TextButton")
-        b.Size = UDim2.new(0, 110, 0, 90); b.Position = xPos
+        b.Size = UDim2.new(0, 118, 0, 96); b.Position = xPos
         b.BackgroundColor3 = P.BTN_BG; b.Text = ""; b.AutoButtonColor = false
-        b.Parent = Frame; corner(b, 18); stroke(b, P.STROKE_SOFT, 1.5)
+        b.Parent = Frame; corner(b, 22); stroke(b, P.PINK_SOFT, 2)
 
         local g = Instance.new("UIGradient", b)
         g.Color = ColorSequence.new(P.BTN_GRAD_A, P.BTN_GRAD_B); g.Rotation = 90
 
         local ic = Instance.new("TextLabel")
-        ic.Size = UDim2.new(1, 0, 0, 45); ic.Position = UDim2.new(0, 0, 0, 6)
-        ic.BackgroundTransparency = 1; ic.Text = emoji; ic.TextSize = 34
+        ic.Size = UDim2.new(1, 0, 0, 50); ic.Position = UDim2.new(0, 0, 0, 8)
+        ic.BackgroundTransparency = 1; ic.Text = emoji; ic.TextSize = 38
         ic.Font = Enum.Font.GothamBold; ic.Parent = b
 
         local lbl = Instance.new("TextLabel")
-        lbl.Size = UDim2.new(1, 0, 0, 20); lbl.Position = UDim2.new(0, 0, 1, -26)
+        lbl.Size = UDim2.new(1, 0, 0, 22); lbl.Position = UDim2.new(0, 0, 1, -28)
         lbl.BackgroundTransparency = 1; lbl.Text = label
         lbl.TextColor3 = P.HEADER_TEXT; lbl.Font = Enum.Font.GothamBold
-        lbl.TextSize = 12; lbl.Parent = b
+        lbl.TextSize = 13; lbl.Parent = b
 
-        b.MouseButton1Down:Connect(function() tween(b, { BackgroundColor3 = P.BTN_BG_ON }, 0.08) end)
-        b.MouseButton1Up:Connect(function() tween(b, { BackgroundColor3 = P.BTN_BG }, 0.15, Enum.EasingStyle.Back) end)
+        b.MouseButton1Down:Connect(function()
+            tween(b, { BackgroundColor3 = P.BTN_BG_ON }, 0.08)
+        end)
+        b.MouseButton1Up:Connect(function()
+            tween(b, { BackgroundColor3 = P.BTN_BG }, 0.15, Enum.EasingStyle.Back)
+        end)
         b.MouseButton1Click:Connect(function()
-            pop(b, 6); task.wait(0.15)
+            pop(b, 8)
+            task.wait(0.15)
             gui:Destroy(); onPick()
         end)
     end
 
-    makePickBtn("PC", "🖥️", UDim2.new(0, 25, 0, 85), function() onSelect(false) end)
-    makePickBtn("Mobile", "📱", UDim2.new(1, -135, 0, 85), function() onSelect(true) end)
+    makePickBtn("PC", "🖥️", UDim2.new(0, 25, 0, 88), function() onSelect(false) end)
+    makePickBtn("Mobile", "📱", UDim2.new(1, -143, 0, 88), function() onSelect(true) end)
 
     local note = Instance.new("TextLabel")
     note.Size = UDim2.new(1, -30, 0, 16); note.Position = UDim2.new(0, 15, 1, -22)
     note.BackgroundTransparency = 1
-    note.Text = "you can change this later in settings"
-    note.TextColor3 = P.FOOTER; note.Font = Enum.Font.Gotham
+    note.Text = "💕 you can change this later"
+    note.TextColor3 = P.PINK; note.Font = Enum.Font.GothamMedium
     note.TextSize = 9; note.TextXAlignment = Enum.TextXAlignment.Center; note.Parent = Frame
 
     Frame.Size = UDim2.new(0, 0, 0, 0)
-    tween(Frame, { Size = UDim2.new(0, 300, 0, 200) }, 0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+    tween(Frame, { Size = UDim2.new(0, 310, 0, 210) }, 0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
 end
 
+-- ═══ INTRO ═══
 local function playIntro()
     local blur = Instance.new("BlurEffect")
     blur.Size = 0; blur.Parent = Lighting
@@ -311,12 +389,36 @@ local function playIntro()
     parentGui(IntroGui)
 
     local Veil = Instance.new("Frame")
-    Veil.Size = UDim2.new(1, 0, 1, 0); Veil.BackgroundColor3 = Color3.fromRGB(255, 250, 224)
+    Veil.Size = UDim2.new(1, 0, 1, 0); Veil.BackgroundColor3 = Color3.fromRGB(255, 245, 235)
     Veil.BackgroundTransparency = 1; Veil.BorderSizePixel = 0; Veil.Parent = IntroGui
-    gradient(Veil, Color3.fromRGB(255, 248, 200), Color3.fromRGB(252, 232, 160), 90)
+    gradient(Veil, Color3.fromRGB(255, 248, 210), Color3.fromRGB(255, 220, 225), 90)
+
+    -- floating hearts background
+    for i = 1, 8 do
+        local h = Instance.new("TextLabel")
+        h.Size = UDim2.new(0, 30, 0, 30)
+        h.Position = UDim2.new(math.random(), 0, 1.15, 0)
+        h.BackgroundTransparency = 1
+        h.Text = (i % 2 == 0) and "💕" or "💖"
+        h.TextSize = math.random(14, 22)
+        h.TextTransparency = 1
+        h.Font = Enum.Font.GothamBold
+        h.Parent = IntroGui
+        task.spawn(function()
+            task.wait(math.random() * 0.5)
+            local dur = 4 + math.random() * 3
+            local startX = h.Position.X.Scale
+            tween(h, {
+                Position = UDim2.new(startX + (math.random() - 0.5) * 0.15, 0, -0.15, 0),
+                TextTransparency = 0,
+            }, dur * 0.6, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
+            task.wait(dur * 0.4)
+            tween(h, { TextTransparency = 1 }, dur * 0.6)
+        end)
+    end
 
     local Center = Instance.new("Frame")
-    Center.Size = UDim2.new(0, 320, 0, 140); Center.Position = UDim2.new(0.5, -160, 0.5, -70)
+    Center.Size = UDim2.new(0, 320, 0, 150); Center.Position = UDim2.new(0.5, -160, 0.5, -75)
     Center.BackgroundTransparency = 1; Center.Parent = IntroGui
 
     local TitleLbl = Instance.new("TextLabel")
@@ -334,16 +436,17 @@ local function playIntro()
     local Dots = Instance.new("TextLabel")
     Dots.Size = UDim2.new(1, 0, 0, 20); Dots.Position = UDim2.new(0, 0, 0, 100)
     Dots.BackgroundTransparency = 1; Dots.Text = ""
-    Dots.TextColor3 = P.HEADER_TEXT; Dots.Font = Enum.Font.GothamBold
+    Dots.TextColor3 = P.PINK; Dots.Font = Enum.Font.GothamBold
     Dots.TextSize = 14; Dots.TextTransparency = 1; Dots.Parent = Center
 
+    -- bobbing puddings + hearts on sides
     for _, side in ipairs({
-        { pos = UDim2.new(0, 24, 0.5, -18) },
-        { pos = UDim2.new(1, -64, 0.5, -18) },
+        { pos = UDim2.new(0, 24, 0.5, -18), emoji = "🍮" },
+        { pos = UDim2.new(1, -64, 0.5, -18), emoji = "🍮" },
     }) do
         local f = Instance.new("TextLabel")
         f.Size = UDim2.new(0, 40, 0, 40); f.Position = side.pos
-        f.BackgroundTransparency = 1; f.Text = "🍮"
+        f.BackgroundTransparency = 1; f.Text = side.emoji
         f.Font = Enum.Font.GothamBold; f.TextSize = 26
         f.TextTransparency = 1; f.Parent = Center
         task.spawn(function()
@@ -385,8 +488,8 @@ local function playIntro()
     end
 
     task.wait(1.6)
-    SubLbl.Text = "loaded ✨"
-    SubLbl.TextColor3 = Color3.fromRGB(200, 155, 110)
+    SubLbl.Text = "loaded"
+    SubLbl.TextColor3 = P.PINK
     task.wait(0.85)
 
     tween(TitleLbl, { TextTransparency = 1 }, 0.5)
@@ -404,8 +507,8 @@ local function playIntro()
     IntroGui:Destroy(); blur:Destroy()
 end
 
+-- ═══ MAIN ═══
 local function startMain(profileName, profileData)
-    -- 🔒 HARD GATE — must have key or be staff
     if not _keyPassed and not (profileName and profileData) then
         warn("🍮 livyii.main: no key provided — access denied.")
         return
@@ -424,41 +527,76 @@ local function startMain(profileName, profileData)
     Main.Position = UDim2.new(0.5, -s.mainW / 2, 0.5, -s.mainH / 2)
     Main.BackgroundColor3 = P.BG; Main.BorderSizePixel = 0
     Main.Active = false; Main.Draggable = false; Main.Parent = ScreenGui
-    corner(Main, 24); stroke(Main, P.STROKE_SOFT, 1.5)
+    corner(Main, 28); stroke(Main, P.PINK_SOFT, 2)
+
+    -- soft pink glow
+    do
+        local glow = Instance.new("Frame")
+        glow.Size = UDim2.new(1, 10, 1, 10); glow.Position = UDim2.new(0, -5, 0, -5)
+        glow.BackgroundColor3 = P.PINK_SOFT; glow.BackgroundTransparency = 0.75
+        glow.BorderSizePixel = 0; glow.ZIndex = -2; glow.Parent = Main
+        corner(glow, 32)
+    end
 
     do
         local sh = Instance.new("Frame")
-        sh.Size = UDim2.new(1, 0, 1, 0); sh.Position = UDim2.new(0, 0, 0, 5)
-        sh.BackgroundColor3 = P.SHADOW; sh.BackgroundTransparency = 0.7
+        sh.Size = UDim2.new(1, 0, 1, 0); sh.Position = UDim2.new(0, 0, 0, 6)
+        sh.BackgroundColor3 = P.SHADOW; sh.BackgroundTransparency = 0.6
         sh.BorderSizePixel = 0; sh.ZIndex = -1; sh.Parent = Main
-        corner(sh, 24)
+        corner(sh, 28)
     end
 
     do
         local g = Instance.new("UIGradient", Main)
-        g.Color = ColorSequence.new(Color3.fromRGB(255, 253, 240), Color3.fromRGB(255, 248, 220))
+        g.Color = ColorSequence.new(Color3.fromRGB(255, 253, 245), Color3.fromRGB(255, 242, 235))
         g.Rotation = 90
     end
 
+    -- header with cute text
     local Title = Instance.new("TextLabel")
     Title.Size = UDim2.new(1, 0, 0, s.headerH)
     Title.BackgroundColor3 = P.HEADER_A; Title.BorderSizePixel = 0
     Title.Text = "🍮  livyii.main  🍮"
     Title.TextColor3 = P.HEADER_TEXT; Title.Font = Enum.Font.GothamBold
     Title.TextSize = s.titleSize; Title.TextYAlignment = Enum.TextYAlignment.Center
-    Title.Parent = Main; corner(Title, 24)
+    Title.Parent = Main; corner(Title, 28)
     gradient(Title, P.HEADER_A, P.HEADER_B, 90)
 
     local TitleFix = Instance.new("Frame")
-    TitleFix.Size = UDim2.new(1, 0, 0, 24); TitleFix.Position = UDim2.new(0, 0, 1, -24)
+    TitleFix.Size = UDim2.new(1, 0, 0, 26); TitleFix.Position = UDim2.new(0, 0, 1, -26)
     TitleFix.BackgroundColor3 = P.HEADER_B; TitleFix.BorderSizePixel = 0; TitleFix.Parent = Title
 
+    -- pink underline accent
     do
-        local hl = Instance.new("Frame")
-        hl.Size = UDim2.new(1, -30, 0, 1); hl.Position = UDim2.new(0, 15, 0, 2)
-        hl.BackgroundColor3 = Color3.fromRGB(255, 255, 250); hl.BackgroundTransparency = 0.4
-        hl.BorderSizePixel = 0; hl.ZIndex = 3; hl.Parent = Title
-        corner(hl, 1)
+        local line = Instance.new("Frame")
+        line.Size = UDim2.new(1, -40, 0, 2); line.Position = UDim2.new(0, 20, 1, -3)
+        line.BackgroundColor3 = P.PINK; line.BackgroundTransparency = 0.3
+        line.BorderSizePixel = 0; line.ZIndex = 4; line.Parent = Title
+        corner(line, 1)
+    end
+
+    -- cute hearts beside header
+    for _, side in ipairs({
+        { pos = UDim2.new(0, 8, 0.5, -10), text = "💕" },
+        { pos = UDim2.new(1, -30, 0.5, -10), text = "💕" },
+    }) do
+        local hh = Instance.new("TextLabel")
+        hh.Size = UDim2.new(0, 20, 0, 20)
+        hh.Position = side.pos
+        hh.BackgroundTransparency = 1
+        hh.Text = side.text
+        hh.TextSize = 14
+        hh.Font = Enum.Font.GothamBold
+        hh.ZIndex = 6
+        hh.Parent = Title
+        task.spawn(function()
+            while hh.Parent do
+                tween(hh, { Rotation = 15 }, 0.7, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
+                task.wait(0.7)
+                tween(hh, { Rotation = -15 }, 0.7, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
+                task.wait(0.7)
+            end
+        end)
     end
 
     if profileName and profileData then
@@ -471,9 +609,9 @@ local function startMain(profileName, profileData)
         corner(badge, 7)
     else
         local platBadge = Instance.new("TextLabel")
-        platBadge.Size = UDim2.new(0, 70, 0, 14); platBadge.Position = UDim2.new(0, 8, 1, -18)
-        platBadge.BackgroundColor3 = Platform.isMobile and Color3.fromRGB(255, 200, 220) or Color3.fromRGB(200, 220, 255)
-        platBadge.BackgroundTransparency = 0.4
+        platBadge.Size = UDim2.new(0, 76, 0, 14); platBadge.Position = UDim2.new(0, 8, 1, -18)
+        platBadge.BackgroundColor3 = Platform.isMobile and Color3.fromRGB(255, 200, 220) or Color3.fromRGB(220, 230, 255)
+        platBadge.BackgroundTransparency = 0.35
         platBadge.Text = Platform.isMobile and "📱 mobile" or "🖥️ pc"
         platBadge.TextColor3 = P.HEADER_TEXT; platBadge.Font = Enum.Font.GothamBold
         platBadge.TextSize = 8; platBadge.ZIndex = 5; platBadge.Parent = Title
@@ -512,12 +650,12 @@ local function startMain(profileName, profileData)
         b.BackgroundColor3 = P.BTN_BG; b.Text = text
         b.TextColor3 = P.HEADER_TEXT; b.Font = Enum.Font.GothamBold
         b.TextSize = s.btnSize - 12; b.AutoButtonColor = false; b.ZIndex = 10; b.Parent = Title
-        corner(b, s.btnSize / 2); stroke(b, P.STROKE_SOFT, 1)
+        corner(b, s.btnSize / 2); stroke(b, P.PINK_SOFT, 1.5)
         b.MouseButton1Down:Connect(function()
-            tween(b, { Size = UDim2.new(0, s.btnSize - 4, 0, s.btnSize - 4), Position = UDim2.new(pos.X.Scale, pos.X.Offset + 2, pos.Y.Scale, pos.Y.Offset + 2) }, 0.08)
+            tween(b, { Size = UDim2.new(0, s.btnSize - 4, 0, s.btnSize - 4), Position = UDim2.new(pos.X.Scale, pos.X.Offset + 2, pos.Y.Scale, pos.Y.Offset + 2), BackgroundColor3 = P.BTN_BG_ON }, 0.08)
         end)
         b.MouseButton1Up:Connect(function()
-            tween(b, { Size = UDim2.new(0, s.btnSize, 0, s.btnSize), Position = pos }, 0.14, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+            tween(b, { Size = UDim2.new(0, s.btnSize, 0, s.btnSize), Position = pos, BackgroundColor3 = P.BTN_BG }, 0.14, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
         end)
         return b
     end
@@ -526,7 +664,7 @@ local function startMain(profileName, profileData)
     local CloseBtn = headerBtn("✕", UDim2.new(1, -s.btnSize - 4, 0, (s.headerH - s.btnSize) / 2))
 
     local PageHolder = Instance.new("Frame")
-    PageHolder.Size = UDim2.new(1, -14, 1, -s.headerH - 20)
+    PageHolder.Size = UDim2.new(1, -14, 1, -s.headerH - 22)
     PageHolder.Position = UDim2.new(0, 7, 0, s.headerH + 6)
     PageHolder.BackgroundTransparency = 1; PageHolder.ClipsDescendants = true
     PageHolder.Parent = Main
@@ -538,9 +676,9 @@ local function startMain(profileName, profileData)
     end
 
     local Footer = Instance.new("TextLabel")
-    Footer.Size = UDim2.new(1, -14, 0, 14); Footer.Position = UDim2.new(0, 7, 1, -18)
-    Footer.BackgroundTransparency = 1; Footer.Text = "livyii.main ✿ made with love"
-    Footer.TextColor3 = P.FOOTER; Footer.Font = Enum.Font.Gotham
+    Footer.Size = UDim2.new(1, -14, 0, 16); Footer.Position = UDim2.new(0, 7, 1, -20)
+    Footer.BackgroundTransparency = 1; Footer.Text = "💖 livyii.main ✿ made with love 💖"
+    Footer.TextColor3 = P.PINK; Footer.Font = Enum.Font.Gotham
     Footer.TextSize = 9; Footer.Parent = Main
 
     local MainPage
@@ -549,14 +687,14 @@ local function startMain(profileName, profileData)
         local p = Instance.new("ScrollingFrame")
         p.Size = UDim2.new(1, 0, 1, 0); p.BackgroundTransparency = 1
         p.BorderSizePixel = 0
-        p.ScrollBarThickness = Platform.isMobile and 6 or 3
-        p.ScrollBarImageColor3 = P.FILL_B; p.ScrollBarImageTransparency = 0.3
+        p.ScrollBarThickness = Platform.isMobile and 6 or 4
+        p.ScrollBarImageColor3 = P.PINK; p.ScrollBarImageTransparency = 0.3
         p.CanvasSize = UDim2.new(0, 0, 0, 0); p.AutomaticCanvasSize = Enum.AutomaticSize.Y
         p.ScrollingDirection = Enum.ScrollingDirection.Y; p.ScrollingEnabled = true
         p.ElasticBehavior = Enum.ElasticBehavior.WhenScrollable; p.Active = true
         p.Visible = false; p.Parent = PageHolder
         local l = Instance.new("UIListLayout", p)
-        l.Padding = UDim.new(0, 6); l.SortOrder = Enum.SortOrder.LayoutOrder
+        l.Padding = UDim.new(0, 7); l.SortOrder = Enum.SortOrder.LayoutOrder
         local pad = Instance.new("Frame")
         pad.Size = UDim2.new(1, 0, 0, 8); pad.BackgroundTransparency = 1; pad.Parent = p
         registerPage(p)
@@ -564,27 +702,27 @@ local function startMain(profileName, profileData)
     end
 
     local function makeSlider(parent, label, minV, maxV, default, suffix, decimals, onChange)
-        local sliderH = Platform.isMobile and 48 or 42
+        local sliderH = Platform.isMobile and 50 or 44
         local Holder = Instance.new("Frame")
         Holder.Size = UDim2.new(1, 0, 0, sliderH)
         Holder.BackgroundTransparency = 1; Holder.Parent = parent
 
         local Lbl = Instance.new("TextLabel")
-        Lbl.Size = UDim2.new(0.6, 0, 0, 15); Lbl.BackgroundTransparency = 1
-        Lbl.Text = label; Lbl.TextColor3 = P.BTN_TEXT
+        Lbl.Size = UDim2.new(0.6, 0, 0, 16); Lbl.BackgroundTransparency = 1
+        Lbl.Text = "💗 " .. label; Lbl.TextColor3 = P.BTN_TEXT
         Lbl.Font = Enum.Font.GothamMedium; Lbl.TextSize = s.tileFontSize
         Lbl.TextXAlignment = Enum.TextXAlignment.Left; Lbl.Parent = Holder
 
         local Val = Instance.new("TextLabel")
-        Val.Size = UDim2.new(0.4, 0, 0, 15); Val.Position = UDim2.new(0.6, 0, 0, 0)
-        Val.BackgroundTransparency = 1; Val.TextColor3 = P.BTN_TEXT_ON
+        Val.Size = UDim2.new(0.4, 0, 0, 16); Val.Position = UDim2.new(0.6, 0, 0, 0)
+        Val.BackgroundTransparency = 1; Val.TextColor3 = P.PINK
         Val.Font = Enum.Font.GothamBold; Val.TextSize = s.tileFontSize
         Val.TextXAlignment = Enum.TextXAlignment.Right; Val.Parent = Holder
 
         local trackH = Platform.isMobile and 22 or 18
         local TrackHit = Instance.new("TextButton")
         TrackHit.Size = UDim2.new(1, -4, 0, trackH)
-        TrackHit.Position = UDim2.new(0, 2, 0, Platform.isMobile and 22 or 20)
+        TrackHit.Position = UDim2.new(0, 2, 0, Platform.isMobile and 24 or 22)
         TrackHit.BackgroundTransparency = 1; TrackHit.Text = ""
         TrackHit.AutoButtonColor = false; TrackHit.Active = true
         TrackHit.ZIndex = 5; TrackHit.Parent = Holder
@@ -595,7 +733,7 @@ local function startMain(profileName, profileData)
         Track.BackgroundColor3 = P.TRACK; Track.BorderSizePixel = 0
         Track.ZIndex = 2; Track.Parent = TrackHit; corner(Track, 6)
         local ts = Instance.new("UIStroke", Track)
-        ts.Color = P.STROKE_SOFT; ts.Thickness = 1; ts.Transparency = 0.4
+        ts.Color = P.PINK_SOFT; ts.Thickness = 1; ts.Transparency = 0.3
 
         local Fill = Instance.new("Frame")
         Fill.Size = UDim2.new(0, 0, 1, 0); Fill.BackgroundColor3 = P.FILL_A
@@ -609,7 +747,7 @@ local function startMain(profileName, profileData)
         Knob.Position = UDim2.new(0, 0, 0.5, 0)
         Knob.BackgroundColor3 = Color3.fromRGB(255, 255, 252)
         Knob.ZIndex = 4; Knob.Parent = Track; corner(Knob, knobSize / 2)
-        stroke(Knob, P.FILL_B, 2)
+        stroke(Knob, P.PINK, 2)
 
         local function fmt(v)
             if decimals == 0 then return tostring(math.floor(v + 0.5)) .. suffix end
@@ -635,7 +773,7 @@ local function startMain(profileName, profileData)
             if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                 draggingS = true; activeSliderInput = input
                 fromX(input.Position.X)
-                tween(Knob, { Size = UDim2.new(0, knobSize + 4, 0, knobSize + 4) }, 0.12, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+                tween(Knob, { Size = UDim2.new(0, knobSize + 6, 0, knobSize + 6) }, 0.12, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
             end
         end)
         UserInputService.InputChanged:Connect(function(input)
@@ -656,11 +794,11 @@ local function startMain(profileName, profileData)
     end
 
     local function makePartPicker(parent, options, default, onChange)
-        local pickerH = Platform.isMobile and 32 or 26
+        local pickerH = Platform.isMobile and 34 or 28
         local Row = Instance.new("Frame")
         Row.Size = UDim2.new(1, 0, 0, pickerH); Row.BackgroundTransparency = 1; Row.Parent = parent
         local l = Instance.new("UIListLayout", Row)
-        l.FillDirection = Enum.FillDirection.Horizontal; l.Padding = UDim.new(0, 5)
+        l.FillDirection = Enum.FillDirection.Horizontal; l.Padding = UDim.new(0, 6)
         local btns = {}
         local function select(opt)
             for name, b in pairs(btns) do
@@ -678,17 +816,17 @@ local function startMain(profileName, profileData)
             b.BackgroundColor3 = (opt == default) and P.BTN_BG_ON or P.BTN_BG
             b.Text = opt
             b.TextColor3 = (opt == default) and P.BTN_TEXT_ON or P.BTN_TEXT
-            b.Font = Enum.Font.GothamMedium; b.TextSize = s.tileFontSize
+            b.Font = Enum.Font.GothamBold; b.TextSize = s.tileFontSize
             b.AutoButtonColor = false; b.Parent = Row
-            corner(b, 9); stroke(b, P.STROKE_SOFT, 1)
+            corner(b, 12); stroke(b, P.PINK_SOFT, 1.5)
             btns[opt] = b
-            b.MouseButton1Click:Connect(function() select(opt) end)
+            b.MouseButton1Click:Connect(function() select(opt); pop(b, 4) end)
         end
         return Row
     end
 
     local function makeColorPicker(parent, label, defaultColor, onChange)
-        local cPickerH = Platform.isMobile and 164 or 144
+        local cPickerH = Platform.isMobile and 168 or 148
         local Holder = Instance.new("Frame")
         Holder.Size = UDim2.new(1, 0, 0, cPickerH)
         Holder.BackgroundTransparency = 1; Holder.Parent = parent
@@ -698,13 +836,13 @@ local function startMain(profileName, profileData)
 
         local Lbl = Instance.new("TextLabel")
         Lbl.Size = UDim2.new(0.5, 0, 1, 0); Lbl.BackgroundTransparency = 1
-        Lbl.Text = label; Lbl.TextColor3 = P.BTN_TEXT
+        Lbl.Text = "🎨 " .. label; Lbl.TextColor3 = P.BTN_TEXT
         Lbl.Font = Enum.Font.GothamMedium; Lbl.TextSize = s.tileFontSize
         Lbl.TextXAlignment = Enum.TextXAlignment.Left; Lbl.Parent = LblRow
 
         local HexLbl = Instance.new("TextLabel")
         HexLbl.Size = UDim2.new(0, 70, 1, 0); HexLbl.Position = UDim2.new(1, -102, 0, 0)
-        HexLbl.BackgroundTransparency = 1; HexLbl.TextColor3 = P.BTN_TEXT_ON
+        HexLbl.BackgroundTransparency = 1; HexLbl.TextColor3 = P.PINK
         HexLbl.Font = Enum.Font.GothamBold; HexLbl.TextSize = 9
         HexLbl.TextXAlignment = Enum.TextXAlignment.Right; HexLbl.Text = "#FFFFFF"; HexLbl.Parent = LblRow
 
@@ -713,7 +851,7 @@ local function startMain(profileName, profileData)
         Preview.Size = UDim2.new(0, previewSize, 0, previewSize - 10)
         Preview.Position = UDim2.new(1, -previewSize, 0.5, -(previewSize - 10) / 2)
         Preview.BackgroundColor3 = defaultColor; Preview.Parent = LblRow
-        corner(Preview, 7); stroke(Preview, P.STROKE_SOFT, 1)
+        corner(Preview, 7); stroke(Preview, P.PINK_SOFT, 1.5)
 
         local stripH = Platform.isMobile and 24 or 20
         local HueHit = Instance.new("TextButton")
@@ -723,7 +861,7 @@ local function startMain(profileName, profileData)
 
         local HueStrip = Instance.new("Frame")
         HueStrip.Size = UDim2.new(1, 0, 1, 0); HueStrip.BackgroundColor3 = Color3.new(1, 1, 1)
-        HueStrip.BorderSizePixel = 0; HueStrip.ZIndex = 2; HueStrip.Parent = HueHit; corner(HueStrip, 8)
+        HueStrip.BorderSizePixel = 0; HueStrip.ZIndex = 2; HueStrip.Parent = HueHit; corner(HueStrip, 10)
 
         local hueGrad = Instance.new("UIGradient")
         hueGrad.Color = ColorSequence.new({
@@ -734,7 +872,7 @@ local function startMain(profileName, profileData)
             ColorSequenceKeypoint.new(0.62, Color3.fromRGB(120, 210, 240)),
             ColorSequenceKeypoint.new(0.78, Color3.fromRGB(140, 160, 255)),
             ColorSequenceKeypoint.new(0.90, Color3.fromRGB(200, 150, 250)),
-            ColorSequenceKeypoint.new(1.00, Color3.fromRGB(255, 200, 130)),
+            ColorSequenceKeypoint.new(1.00, Color3.fromRGB(255, 180, 200)),
         })
         hueGrad.Parent = HueStrip
 
@@ -744,7 +882,7 @@ local function startMain(profileName, profileData)
         HueCursor.Position = UDim2.new(0, 0.5, 0)
         HueCursor.BackgroundColor3 = Color3.fromRGB(255, 255, 250)
         HueCursor.ZIndex = 3; HueCursor.Parent = HueHit
-        corner(HueCursor, 2); stroke(HueCursor, Color3.fromRGB(150, 150, 150), 1)
+        corner(HueCursor, 2); stroke(HueCursor, P.PINK, 1.5)
 
         local BrightHit = Instance.new("TextButton")
         BrightHit.Size = UDim2.new(1, -4, 0, stripH)
@@ -754,7 +892,7 @@ local function startMain(profileName, profileData)
 
         local BrightStrip = Instance.new("Frame")
         BrightStrip.Size = UDim2.new(1, 0, 1, 0); BrightStrip.BackgroundColor3 = Color3.new(1, 1, 1)
-        BrightStrip.BorderSizePixel = 0; BrightStrip.ZIndex = 2; BrightStrip.Parent = BrightHit; corner(BrightStrip, 8)
+        BrightStrip.BorderSizePixel = 0; BrightStrip.ZIndex = 2; BrightStrip.Parent = BrightHit; corner(BrightStrip, 10)
 
         local brightGrad = Instance.new("UIGradient")
         brightGrad.Parent = BrightStrip
@@ -765,26 +903,26 @@ local function startMain(profileName, profileData)
         BrightCursor.Position = UDim2.new(0, 0.5, 0)
         BrightCursor.BackgroundColor3 = Color3.fromRGB(255, 255, 250)
         BrightCursor.ZIndex = 3; BrightCursor.Parent = BrightHit
-        corner(BrightCursor, 2); stroke(BrightCursor, Color3.fromRGB(150, 150, 150), 1)
+        corner(BrightCursor, 2); stroke(BrightCursor, P.PINK, 1.5)
 
-        local presetRowY = stripH * 2 + 36
+        local presetRowY = stripH * 2 + 40
         local PresetRow = Instance.new("Frame")
-        PresetRow.Size = UDim2.new(1, 0, 0, 20)
+        PresetRow.Size = UDim2.new(1, 0, 0, 22)
         PresetRow.Position = UDim2.new(0, 0, 0, presetRowY)
         PresetRow.BackgroundTransparency = 1; PresetRow.Parent = Holder
 
         local presetLayout = Instance.new("UIListLayout", PresetRow)
         presetLayout.FillDirection = Enum.FillDirection.Horizontal
-        presetLayout.Padding = UDim.new(0, 3)
+        presetLayout.Padding = UDim.new(0, 4)
 
         local presetSize = Platform.isMobile and 22 or 18
         local presets = {
+            Color3.fromRGB(255, 180, 200), Color3.fromRGB(255, 140, 170),
             Color3.fromRGB(255, 220, 130), Color3.fromRGB(255, 200, 130),
             Color3.fromRGB(255, 180, 100), Color3.fromRGB(220, 160, 90),
-            Color3.fromRGB(255,  60,  60), Color3.fromRGB(255, 150,  80),
-            Color3.fromRGB(255, 220, 100), Color3.fromRGB(140, 220, 140),
-            Color3.fromRGB(120, 210, 240), Color3.fromRGB(140, 160, 255),
-            Color3.fromRGB(200, 150, 250), Color3.fromRGB(255, 255, 255),
+            Color3.fromRGB(255, 100, 140), Color3.fromRGB(255, 150, 80),
+            Color3.fromRGB(140, 220, 140), Color3.fromRGB(120, 210, 240),
+            Color3.fromRGB(140, 160, 255), Color3.fromRGB(255, 255, 255),
         }
 
         local currentHue, currentSat, currentVal = defaultColor:ToHSV()
@@ -851,7 +989,7 @@ local function startMain(profileName, profileData)
             pb.Size = UDim2.new(0, presetSize, 0, presetSize)
             pb.BackgroundColor3 = presetColor; pb.Text = ""
             pb.AutoButtonColor = false; pb.Parent = PresetRow
-            corner(pb, presetSize / 2); stroke(pb, P.STROKE_SOFT, 1)
+            corner(pb, presetSize / 2); stroke(pb, P.PINK_SOFT, 1)
             pb.MouseButton1Click:Connect(function()
                 currentHue, currentSat, currentVal = presetColor:ToHSV()
                 HueCursor.Position = UDim2.new(currentHue, 0, 0.5, 0)
@@ -860,7 +998,7 @@ local function startMain(profileName, profileData)
                 else
                     BrightCursor.Position = UDim2.new(currentSat * 0.5, 0, 0.5, 0)
                 end
-                rebuildBrightGrad(); commit(presetColor); pop(pb, 4)
+                rebuildBrightGrad(); commit(presetColor); pop(pb, 6)
             end)
         end
 
@@ -876,9 +1014,9 @@ local function startMain(profileName, profileData)
 
     local function section(parent, text)
         local l = Instance.new("TextLabel")
-        l.Size = UDim2.new(1, 0, 0, 15); l.BackgroundTransparency = 1
-        l.Text = text; l.TextColor3 = P.HEADER_TEXT
-        l.Font = Enum.Font.GothamBold; l.TextSize = s.tileFontSize
+        l.Size = UDim2.new(1, 0, 0, 17); l.BackgroundTransparency = 1
+        l.Text = "✨ " .. text; l.TextColor3 = P.PINK
+        l.Font = Enum.Font.GothamBold; l.TextSize = s.tileFontSize + 1
         l.TextXAlignment = Enum.TextXAlignment.Left; l.Parent = parent
         return l
     end
@@ -887,67 +1025,69 @@ local function startMain(profileName, profileData)
         r.Size = UDim2.new(1, 0, 0, height or s.tileRowH)
         r.BackgroundTransparency = 1; r.Parent = parent
         local l = Instance.new("UIListLayout", r)
-        l.FillDirection = Enum.FillDirection.Horizontal; l.Padding = UDim.new(0, 6)
+        l.FillDirection = Enum.FillDirection.Horizontal; l.Padding = UDim.new(0, 7)
         return r
     end
 
     local function makeTile(parent, name, emoji, onToggle, onSettings, wide)
         local Btn = Instance.new("TextButton")
-        Btn.Size = wide and UDim2.new(1, 0, 1, 0) or UDim2.new(0.5, -3, 1, 0)
+        Btn.Size = wide and UDim2.new(1, 0, 1, 0) or UDim2.new(0.5, -4, 1, 0)
         Btn.BackgroundColor3 = P.BTN_BG; Btn.Text = ""
         Btn.AutoButtonColor = false; Btn.Parent = parent
-        corner(Btn, 14); stroke(Btn, P.STROKE_SOFT, 1)
+        corner(Btn, 16); stroke(Btn, P.PINK_SOFT, 1.5)
 
         local bg = Instance.new("UIGradient", Btn)
         bg.Color = ColorSequence.new(P.BTN_GRAD_A, P.BTN_GRAD_B); bg.Rotation = 90
 
         local Lbl = Instance.new("TextLabel")
-        Lbl.Size = UDim2.new(1, -20, 0, 14); Lbl.Position = UDim2.new(0, 10, 0, 5)
+        Lbl.Size = UDim2.new(1, -20, 0, 15); Lbl.Position = UDim2.new(0, 12, 0, 6)
         Lbl.BackgroundTransparency = 1; Lbl.Text = emoji .. " " .. name
         Lbl.TextColor3 = P.BTN_TEXT; Lbl.Font = Enum.Font.GothamBold
         Lbl.TextSize = s.tileFontSize; Lbl.TextXAlignment = Enum.TextXAlignment.Left
         Lbl.ZIndex = 2; Lbl.Parent = Btn
 
         local Dot = Instance.new("Frame")
-        Dot.Size = UDim2.new(0, 8, 0, 8); Dot.Position = UDim2.new(0, 11, 1, -16)
-        Dot.BackgroundColor3 = P.DOT_OFF; Dot.ZIndex = 2; Dot.Parent = Btn; corner(Dot, 4)
+        Dot.Size = UDim2.new(0, 9, 0, 9); Dot.Position = UDim2.new(0, 13, 1, -18)
+        Dot.BackgroundColor3 = P.DOT_OFF; Dot.ZIndex = 2; Dot.Parent = Btn; corner(Dot, 5)
+        stroke(Dot, P.PINK_SOFT, 1)
 
         local StatusLbl = Instance.new("TextLabel")
-        StatusLbl.Size = UDim2.new(1, -34, 0, 10); StatusLbl.Position = UDim2.new(0, 23, 1, -17)
+        StatusLbl.Size = UDim2.new(1, -38, 0, 10); StatusLbl.Position = UDim2.new(0, 26, 1, -19)
         StatusLbl.BackgroundTransparency = 1; StatusLbl.Text = "off"
         StatusLbl.TextColor3 = P.DOT_OFF; StatusLbl.Font = Enum.Font.GothamMedium
         StatusLbl.TextSize = s.statusFontSize; StatusLbl.TextXAlignment = Enum.TextXAlignment.Left
         StatusLbl.ZIndex = 2; StatusLbl.Parent = Btn
 
-        local gearSize = Platform.isMobile and 24 or 20
+        local gearSize = Platform.isMobile and 26 or 22
         local Gear = Instance.new("TextButton")
         Gear.Size = UDim2.new(0, gearSize, 0, gearSize)
-        Gear.Position = UDim2.new(1, -gearSize - 4, 0, 5)
+        Gear.Position = UDim2.new(1, -gearSize - 6, 0, 6)
         Gear.BackgroundColor3 = P.GEAR_BG; Gear.Text = "⚙"
-        Gear.TextColor3 = P.BTN_TEXT; Gear.Font = Enum.Font.GothamBold
-        Gear.TextSize = Platform.isMobile and 13 or 11; Gear.AutoButtonColor = false
+        Gear.TextColor3 = P.GEAR_TEXT; Gear.Font = Enum.Font.GothamBold
+        Gear.TextSize = Platform.isMobile and 14 or 12; Gear.AutoButtonColor = false
         Gear.ZIndex = 5; Gear.Parent = Btn; corner(Gear, gearSize / 2)
-        stroke(Gear, P.STROKE_SOFT, 1)
+        stroke(Gear, P.PINK_SOFT, 1.5)
 
         local on = false
         local function set(v)
             on = v
             if on then
                 tween(Btn, { BackgroundColor3 = P.BTN_BG_ON }, 0.22, Enum.EasingStyle.Back)
-                if bg then bg.Color = ColorSequence.new(
-                    Color3.fromRGB(255, 252, 220), Color3.fromRGB(255, 240, 185)
-                ) end
+                if bg then bg.Color = ColorSequence.new(P.BTN_GRAD_ON_A, P.BTN_GRAD_ON_B) end
                 tween(Lbl, { TextColor3 = P.BTN_TEXT_ON }, 0.22)
                 tween(Dot, { BackgroundColor3 = P.DOT_ON }, 0.22, Enum.EasingStyle.Back)
-                StatusLbl.Text = "on"
-                tween(StatusLbl, { TextColor3 = P.DOT_ON }, 0.22)
+                tween(StatusLbl, { Text = "on", TextColor3 = P.DOT_ON }, 0.22)
+                tween(Btn, { Rotation = 2 }, 0.15, Enum.EasingStyle.Quad)
+                task.wait(0.16)
+                tween(Btn, { Rotation = -1 }, 0.15, Enum.EasingStyle.Quad)
+                task.wait(0.16)
+                tween(Btn, { Rotation = 0 }, 0.18, Enum.EasingStyle.Back)
             else
                 tween(Btn, { BackgroundColor3 = P.BTN_BG }, 0.22)
                 if bg then bg.Color = ColorSequence.new(P.BTN_GRAD_A, P.BTN_GRAD_B) end
                 tween(Lbl, { TextColor3 = P.BTN_TEXT }, 0.22)
                 tween(Dot, { BackgroundColor3 = P.DOT_OFF }, 0.22)
-                StatusLbl.Text = "off"
-                tween(StatusLbl, { TextColor3 = P.DOT_OFF }, 0.22)
+                tween(StatusLbl, { Text = "off", TextColor3 = P.DOT_OFF }, 0.22)
             end
             onToggle(on)
         end
@@ -960,7 +1100,11 @@ local function startMain(profileName, profileData)
         end)
 
         Btn.MouseButton1Click:Connect(function() set(not on) end)
-        Gear.MouseButton1Click:Connect(function() pop(Gear, 3); onSettings() end)
+        Gear.MouseButton1Click:Connect(function()
+            pop(Gear, 5)
+            heartPop(ScreenGui, Gear.AbsolutePosition)
+            onSettings()
+        end)
         return { frame = Btn, set = set }
     end
 
@@ -971,25 +1115,28 @@ local function startMain(profileName, profileData)
         BackBtn.BackgroundColor3 = P.BTN_BG; BackBtn.Text = "← back"
         BackBtn.TextColor3 = P.BTN_TEXT; BackBtn.Font = Enum.Font.GothamBold
         BackBtn.TextSize = s.tileFontSize; BackBtn.AutoButtonColor = false
-        BackBtn.Parent = p; corner(BackBtn, 13); stroke(BackBtn, P.STROKE_SOFT, 1)
-        BackBtn.MouseButton1Click:Connect(function() pop(BackBtn, 4); showPage(MainPage) end)
+        BackBtn.Parent = p; corner(BackBtn, 14); stroke(BackBtn, P.PINK_SOFT, 1.5)
+        BackBtn.MouseButton1Click:Connect(function()
+            pop(BackBtn, 6)
+            showPage(MainPage)
+        end)
         BackBtn.MouseButton1Down:Connect(function() tween(BackBtn, { BackgroundColor3 = P.BTN_BG_ON }, 0.08) end)
         BackBtn.MouseButton1Up:Connect(function() tween(BackBtn, { BackgroundColor3 = P.BTN_BG }, 0.15, Enum.EasingStyle.Back) end)
 
         local hdr = Instance.new("TextLabel")
-        hdr.Size = UDim2.new(1, 0, 0, 18); hdr.BackgroundTransparency = 1
-        hdr.Text = titleText; hdr.TextColor3 = P.HEADER_TEXT
-        hdr.Font = Enum.Font.GothamBold; hdr.TextSize = s.tileFontSize + 1
+        hdr.Size = UDim2.new(1, 0, 0, 20); hdr.BackgroundTransparency = 1
+        hdr.Text = titleText; hdr.TextColor3 = P.PINK
+        hdr.Font = Enum.Font.GothamBold; hdr.TextSize = s.tileFontSize + 2
         hdr.TextXAlignment = Enum.TextXAlignment.Left; hdr.Parent = p
         return p
     end
 
     local ShaderPresets = {
         pudding = { label = "🍮 pudding", tint = Color3.fromRGB(255, 252, 240), atmo = Color3.fromRGB(255, 248, 235), decay = Color3.fromRGB(255, 238, 220), bloom = Color3.fromRGB(255, 245, 230) },
-        sakura  = { label = "🌸 sakura",  tint = Color3.fromRGB(255, 248, 250), atmo = Color3.fromRGB(255, 238, 245), decay = Color3.fromRGB(255, 225, 240), bloom = Color3.fromRGB(255, 228, 240) },
+        sakura  = { label = "🌸 sakura",  tint = Color3.fromRGB(255, 245, 248), atmo = Color3.fromRGB(255, 235, 242), decay = Color3.fromRGB(255, 220, 235), bloom = Color3.fromRGB(255, 225, 240) },
         dreamy  = { label = "🌙 dreamy",  tint = Color3.fromRGB(248, 244, 255), atmo = Color3.fromRGB(238, 232, 255), decay = Color3.fromRGB(225, 218, 250), bloom = Color3.fromRGB(232, 222, 255) },
-        pastel  = { label = "🍬 pastel",  tint = Color3.fromRGB(255, 252, 245), atmo = Color3.fromRGB(255, 248, 238), decay = Color3.fromRGB(255, 238, 225), bloom = Color3.fromRGB(255, 240, 230) },
-        sunset  = { label = "🌅 sunset",  tint = Color3.fromRGB(255, 244, 232), atmo = Color3.fromRGB(255, 228, 215), decay = Color3.fromRGB(255, 215, 200), bloom = Color3.fromRGB(255, 225, 210) },
+        pastel  = { label = "🍬 pastel",  tint = Color3.fromRGB(255, 250, 245), atmo = Color3.fromRGB(255, 245, 235), decay = Color3.fromRGB(255, 235, 220), bloom = Color3.fromRGB(255, 240, 230) },
+        sunset  = { label = "🌅 sunset",  tint = Color3.fromRGB(255, 242, 230), atmo = Color3.fromRGB(255, 225, 210), decay = Color3.fromRGB(255, 210, 195), bloom = Color3.fromRGB(255, 220, 205) },
         mint    = { label = "🌿 mint",    tint = Color3.fromRGB(242, 255, 250), atmo = Color3.fromRGB(228, 252, 242), decay = Color3.fromRGB(215, 248, 232), bloom = Color3.fromRGB(225, 252, 242) },
         sky     = { label = "☁️ sky",     tint = Color3.fromRGB(244, 250, 255), atmo = Color3.fromRGB(232, 246, 255), decay = Color3.fromRGB(218, 238, 255), bloom = Color3.fromRGB(228, 242, 255) },
     }
@@ -1104,10 +1251,10 @@ local function startMain(profileName, profileData)
     aimTagBg.BackgroundColor3 = Config.AimColor
     aimTagBg.BackgroundTransparency = 0.15
     aimTagBg.BorderSizePixel = 0; aimTagBg.Parent = aimBillboard
-    corner(aimTagBg, 12); stroke(aimTagBg, Color3.fromRGB(255, 255, 255), 1.5)
+    corner(aimTagBg, 14); stroke(aimTagBg, P.PINK, 2)
 
     local aimTagGrad = Instance.new("UIGradient", aimTagBg)
-    aimTagGrad.Color = ColorSequence.new(Config.AimColor, Color3.fromRGB(255, 230, 190))
+    aimTagGrad.Color = ColorSequence.new(Config.AimColor, Color3.fromRGB(255, 220, 190))
     aimTagGrad.Rotation = 90
 
     local aimTagLbl = Instance.new("TextLabel")
@@ -1132,8 +1279,8 @@ local function startMain(profileName, profileData)
     aimFOVStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 
     local aimFOVGlow = Instance.new("UIStroke", aimFOVFrame)
-    aimFOVGlow.Color = Color3.fromRGB(255, 230, 190); aimFOVGlow.Thickness = 5
-    aimFOVGlow.Transparency = 0.85
+    aimFOVGlow.Color = P.PINK; aimFOVGlow.Thickness = 5
+    aimFOVGlow.Transparency = 0.8
     aimFOVGlow.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 
     local partMap = { Head = "Head", Torso = "UpperTorso", Root = "HumanoidRootPart" }
@@ -1170,7 +1317,7 @@ local function startMain(profileName, profileData)
         if LockedTarget then
             tween(LockBtn, { BackgroundColor3 = P.LOCK_ON_A }, 0.22, Enum.EasingStyle.Back)
             if grad then grad.Color = ColorSequence.new(P.LOCK_ON_A, P.LOCK_ON_B) end
-            icon.Text = "🔒"
+            icon.Text = "💖"
             tween(icon, { TextColor3 = Color3.fromRGB(255, 255, 255) }, 0.22)
             nameLbl.Text = LockedTarget.DisplayName or LockedTarget.Name
             nameLbl.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -1193,9 +1340,9 @@ local function startMain(profileName, profileData)
         if Config.HitboxActive then
             tween(HitboxBtn, { BackgroundColor3 = P.HB_ON_A }, 0.22, Enum.EasingStyle.Back)
             if grad then grad.Color = ColorSequence.new(P.HB_ON_A, P.HB_ON_B) end
-            icon.Text = "🎈"
+            icon.Text = "🎀"
             tween(icon, { TextColor3 = Color3.fromRGB(255, 255, 255) }, 0.22)
-            lbl.Text = "active"; lbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+            lbl.Text = "active 💕"; lbl.TextColor3 = Color3.fromRGB(255, 255, 255)
         else
             tween(HitboxBtn, { BackgroundColor3 = P.HB_IDLE_A }, 0.22)
             if grad then grad.Color = ColorSequence.new(P.HB_IDLE_A, P.HB_IDLE_B) end
@@ -1214,9 +1361,9 @@ local function startMain(profileName, profileData)
         if Config.AimAssist then
             tween(AimBtn, { BackgroundColor3 = P.AIM_ON_A }, 0.22, Enum.EasingStyle.Back)
             if grad then grad.Color = ColorSequence.new(P.AIM_ON_A, P.AIM_ON_B) end
-            icon.Text = "✨"
+            icon.Text = "💫"
             tween(icon, { TextColor3 = Color3.fromRGB(255, 255, 255) }, 0.22)
-            lbl.Text = "tracking"; lbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+            lbl.Text = "tracking ♡"; lbl.TextColor3 = Color3.fromRGB(255, 255, 255)
         else
             tween(AimBtn, { BackgroundColor3 = P.AIM_IDLE_A }, 0.22)
             if grad then grad.Color = ColorSequence.new(P.AIM_IDLE_A, P.AIM_IDLE_B) end
@@ -1232,7 +1379,7 @@ local function startMain(profileName, profileData)
         b.Position = UDim2.new(0, 20, 0.5, yPos)
         b.BackgroundColor3 = idleA; b.Text = ""
         b.AutoButtonColor = false; b.Active = true; b.Parent = ScreenGui
-        corner(b, s.floatBtn / 2); stroke(b, P.STROKE_SOFT, 1.5)
+        corner(b, s.floatBtn / 2); stroke(b, P.PINK, 2)
         local g = Instance.new("UIGradient", b)
         g.Color = ColorSequence.new(idleA, idleB); g.Rotation = 90
 
@@ -1240,17 +1387,17 @@ local function startMain(profileName, profileData)
         icon.Name = "Icon"; icon.Size = UDim2.new(1, 0, 0.6, 0)
         icon.Position = UDim2.new(0, 0, 0.05, 0); icon.BackgroundTransparency = 1
         icon.Text = iconText; icon.TextColor3 = P.BTN_TEXT_ON
-        icon.Font = Enum.Font.GothamBold; icon.TextSize = s.floatBtn * 0.33; icon.Parent = b
+        icon.Font = Enum.Font.GothamBold; icon.TextSize = s.floatBtn * 0.35; icon.Parent = b
 
         local nameLbl = Instance.new("TextLabel")
         nameLbl.Name = "NameLbl"; nameLbl.Size = UDim2.new(1, -6, 0, 14)
-        nameLbl.Position = UDim2.new(0, 3, 1, -17); nameLbl.BackgroundTransparency = 1
-        nameLbl.Text = "tap"; nameLbl.TextColor3 = P.BTN_TEXT
+        nameLbl.Position = UDim2.new(0, 3, 1, -18); nameLbl.BackgroundTransparency = 1
+        nameLbl.Text = "tap"; nameLbl.TextColor3 = P.PINK
         nameLbl.Font = Enum.Font.GothamBold; nameLbl.TextSize = 8
         nameLbl.TextTruncate = Enum.TextTruncate.AtEnd; nameLbl.Parent = b
 
         b.Size = UDim2.new(0, 0, 0, 0)
-        tween(b, { Size = UDim2.new(0, s.floatBtn, 0, s.floatBtn) }, 0.35, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+        tween(b, { Size = UDim2.new(0, s.floatBtn, 0, s.floatBtn) }, 0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
         return b
     end
 
@@ -1277,7 +1424,7 @@ local function startMain(profileName, profileData)
         UserInputService.InputEnded:Connect(function(input)
             if not draggingB or input ~= activeInput then return end
             if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-                tween(b, { Size = UDim2.new(0, s.floatBtn, 0, s.floatBtn) }, 0.18, Enum.EasingStyle.Back)
+                tween(b, { Size = UDim2.new(0, s.floatBtn, 0, s.floatBtn) }, 0.2, Enum.EasingStyle.Back)
                 if not moved then onTap() end
                 draggingB = false; activeInput = nil
             end
@@ -1293,13 +1440,10 @@ local function startMain(profileName, profileData)
             if LockedTarget then LockedTarget = nil; updateLockVisuals()
             else
                 local t = GetClosestPlayer(Config.CamlockFOV)
-                if t then LockedTarget = t; updateLockVisuals()
-                else
+                if t then LockedTarget = t; updateLockVisuals() else
                     local orig = b.Position
-                    tween(b, { Position = orig + UDim2.new(0, 5, 0, 0) }, 0.06)
-                    task.wait(0.07)
-                    tween(b, { Position = orig - UDim2.new(0, 5, 0, 0) }, 0.06)
-                    task.wait(0.07)
+                    tween(b, { Position = orig + UDim2.new(0, 5, 0, 0) }, 0.06); task.wait(0.07)
+                    tween(b, { Position = orig - UDim2.new(0, 5, 0, 0) }, 0.06); task.wait(0.07)
                     tween(b, { Position = orig }, 0.06)
                 end
             end
@@ -1367,7 +1511,7 @@ local function startMain(profileName, profileData)
         if ToggleBtn then
             local icon = ToggleBtn:FindFirstChild("Icon")
             local grad = ToggleBtn:FindFirstChildOfClass("UIGradient")
-            if icon then icon.Text = targetVisible and "✕" or "🍮" end
+            if icon then icon.Text = targetVisible and "✕" or "💖" end
             if grad then
                 grad.Color = targetVisible and ColorSequence.new(P.TOGGLE_A, P.TOGGLE_B)
                                        or ColorSequence.new(P.HEADER_A, P.HEADER_B)
@@ -1385,7 +1529,7 @@ local function startMain(profileName, profileData)
         b.BackgroundColor3 = P.TOGGLE_A; b.Text = ""
         b.AutoButtonColor = false; b.Active = true
         b.ZIndex = 100; b.Parent = ScreenGui
-        corner(b, s.toggleBtn / 2); stroke(b, P.STROKE_SOFT, 1.5)
+        corner(b, s.toggleBtn / 2); stroke(b, P.PINK, 2)
         local g = Instance.new("UIGradient", b)
         g.Color = ColorSequence.new(P.TOGGLE_A, P.TOGGLE_B); g.Rotation = 45
 
@@ -1400,6 +1544,19 @@ local function startMain(profileName, profileData)
         ToggleBtn = b
         b.Size = UDim2.new(0, 0, 0, 0)
         tween(b, { Size = UDim2.new(0, s.toggleBtn, 0, s.toggleBtn) }, 0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+
+        -- idle bob
+        task.spawn(function()
+            while b.Parent do
+                task.wait(1.6)
+                if b.Parent then
+                    local p = b.Position
+                    tween(b, { Position = p + UDim2.new(0, 0, 0, -3) }, 0.8, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
+                    task.wait(0.8)
+                    tween(b, { Position = p }, 0.8, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
+                end
+            end
+        end)
 
         local draggingB, dragStartB, startPosB, moved, activeInput = false, nil, nil, false, nil
         b.InputBegan:Connect(function(input)
@@ -1433,22 +1590,22 @@ local function startMain(profileName, profileData)
     MainPage = newPage()
     MainPage.Visible = true
 
-    section(MainPage, "🎯  combat")
+    section(MainPage, "combat ♡")
     local rowCombat1 = row(MainPage, s.tileRowH)
     local rowCombat2 = row(MainPage, s.tileRowH)
-    section(MainPage, "🎨  visual")
+    section(MainPage, "visual ♡")
     local rowVisual1 = row(MainPage, s.tileRowH)
     local rowVisual2 = row(MainPage, s.tileRowH)
-    section(MainPage, "🛡️  utility")
+    section(MainPage, "utility ♡")
     local rowUtil1 = row(MainPage, s.tileRowH)
 
-    local CamlockPage  = newSettingsPage("🎯 camlock settings")
-    local HitboxPage   = newSettingsPage("🎈 hitbox settings")
-    local AimPage      = newSettingsPage("✨ pro aim settings")
-    local FogPage      = newSettingsPage("🌫️ fog settings")
-    local SkyPage      = newSettingsPage("🌈 sky settings")
-    local ShaderPage   = newSettingsPage("✨ light shaders")
-    local AntiPage     = newSettingsPage("🔓 antilock settings")
+    local CamlockPage  = newSettingsPage("🎯 camlock")
+    local HitboxPage   = newSettingsPage("🎈 hitbox")
+    local AimPage      = newSettingsPage("✨ pro aim")
+    local FogPage      = newSettingsPage("🌫️ fog")
+    local SkyPage      = newSettingsPage("🌈 sky")
+    local ShaderPage   = newSettingsPage("✨ shaders")
+    local AntiPage     = newSettingsPage("🔓 antilock")
     local CreditsPage  = newSettingsPage("🏆 credits")
 
     makeTile(rowCombat1, "Camlock", "🎯",
@@ -1478,7 +1635,7 @@ local function startMain(profileName, profileData)
         function(v)
             Config.FogEnabled = v
             if v then
-                Lighting.FogColor = Color3.fromRGB(255, 245, 220)
+                Lighting.FogColor = Color3.fromRGB(255, 240, 225)
                 Lighting.FogEnd = Config.FogEnd; Lighting.FogStart = 0
             else
                 Lighting.FogEnd = 100000; Lighting.FogStart = 0
@@ -1535,11 +1692,11 @@ local function startMain(profileName, profileData)
 
     makeSlider(CamlockPage, "smoothness", 0.05, 1, Config.CamlockSmoothness, "", 2,
         function(v) Config.CamlockSmoothness = v end)
-    makeSlider(CamlockPage, "fov (pixels)", 50, 1000, Config.CamlockFOV, " px", 0,
+    makeSlider(CamlockPage, "fov", 50, 1000, Config.CamlockFOV, " px", 0,
         function(v) Config.CamlockFOV = v end)
     makeSlider(CamlockPage, "y offset", -5, 5, Config.CamlockYOffset, "", 1,
         function(v) Config.CamlockYOffset = v end)
-    section(CamlockPage, "🎯  target part")
+    section(CamlockPage, "target part")
     makePartPicker(CamlockPage, { "Head", "Torso", "Root" }, "Head",
         function(v) Config.CamlockPart = v end)
 
@@ -1557,7 +1714,7 @@ local function startMain(profileName, profileData)
                 end
             end
         end)
-    section(HitboxPage, "🎨  hitbox color")
+    section(HitboxPage, "hitbox color")
     makeColorPicker(HitboxPage, "color", Config.HitboxColor, function(c)
         Config.HitboxColor = c
         if Config.HitboxExpander and Config.HitboxActive then
@@ -1568,24 +1725,24 @@ local function startMain(profileName, profileData)
     end)
 
     local aimInfo = Instance.new("TextLabel")
-    aimInfo.Size = UDim2.new(1, 0, 0, 42); aimInfo.BackgroundTransparency = 1
-    aimInfo.Text = "highlights the closest player with a soft golden glow ✨"
-    aimInfo.TextColor3 = P.BTN_TEXT; aimInfo.Font = Enum.Font.GothamMedium
-    aimInfo.TextSize = 9; aimInfo.TextWrapped = true
+    aimInfo.Size = UDim2.new(1, 0, 0, 44); aimInfo.BackgroundTransparency = 1
+    aimInfo.Text = "💕 highlights the closest player with a soft glow ✨"
+    aimInfo.TextColor3 = P.PINK; aimInfo.Font = Enum.Font.GothamMedium
+    aimInfo.TextSize = 10; aimInfo.TextWrapped = true
     aimInfo.TextXAlignment = Enum.TextXAlignment.Left
     aimInfo.TextYAlignment = Enum.TextYAlignment.Top
     aimInfo.Parent = AimPage
 
-    section(AimPage, "🎯  range")
+    section(AimPage, "range")
     makeSlider(AimPage, "aim fov", 50, 800, Config.AimFOV, " px", 0,
         function(v) Config.AimFOV = v end)
 
-    section(AimPage, "🎨  visuals")
+    section(AimPage, "visuals")
     makeColorPicker(AimPage, "aim color", Config.AimColor, function(c)
         Config.AimColor = c
         aimHighlight.FillColor = c; aimHighlight.OutlineColor = c
         aimTagBg.BackgroundColor3 = c; aimFOVStroke.Color = c
-        aimTagGrad.Color = ColorSequence.new(c, Color3.fromRGB(255, 230, 190))
+        aimTagGrad.Color = ColorSequence.new(c, Color3.fromRGB(255, 220, 190))
     end)
 
     makeSlider(FogPage, "fog end", 50, 2000, Config.FogEnd, " studs", 0,
@@ -1605,14 +1762,14 @@ local function startMain(profileName, profileData)
 
     local shaderInfo = Instance.new("TextLabel")
     shaderInfo.Size = UDim2.new(1, 0, 0, 30); shaderInfo.BackgroundTransparency = 1
-    shaderInfo.Text = "glossy cinematic lighting — pick a mood ✨"
-    shaderInfo.TextColor3 = P.BTN_TEXT; shaderInfo.Font = Enum.Font.GothamMedium
+    shaderInfo.Text = "💖 glossy lighting — pick a mood ✨"
+    shaderInfo.TextColor3 = P.PINK; shaderInfo.Font = Enum.Font.GothamMedium
     shaderInfo.TextSize = 9; shaderInfo.TextWrapped = true
     shaderInfo.TextXAlignment = Enum.TextXAlignment.Left
     shaderInfo.TextYAlignment = Enum.TextYAlignment.Top
     shaderInfo.Parent = ShaderPage
 
-    section(ShaderPage, "🍮  preset")
+    section(ShaderPage, "preset")
     local shaderOptions = {}
     for key, data in pairs(ShaderPresets) do
         table.insert(shaderOptions, { value = key, label = data.label })
@@ -1620,11 +1777,11 @@ local function startMain(profileName, profileData)
     table.sort(shaderOptions, function(a, b) return a.label < b.label end)
 
     local shaderRow = Instance.new("Frame")
-    shaderRow.Size = UDim2.new(1, 0, 0, 52); shaderRow.BackgroundTransparency = 1
+    shaderRow.Size = UDim2.new(1, 0, 0, 54); shaderRow.BackgroundTransparency = 1
     shaderRow.Parent = ShaderPage
     local srl = Instance.new("UIListLayout", shaderRow)
     srl.FillDirection = Enum.FillDirection.Horizontal
-    srl.Padding = UDim.new(0, 4); srl.Wraps = true
+    srl.Padding = UDim.new(0, 5); srl.Wraps = true
 
     local shaderBtns = {}
     local function selectShader(val)
@@ -1640,18 +1797,18 @@ local function startMain(profileName, profileData)
     end
     for _, opt in ipairs(shaderOptions) do
         local b = Instance.new("TextButton")
-        b.Size = UDim2.new(0, 78, 0, 24)
+        b.Size = UDim2.new(0, 80, 0, 26)
         b.BackgroundColor3 = (opt.value == Config.ShaderPreset) and P.BTN_BG_ON or P.BTN_BG
         b.Text = opt.label
         b.TextColor3 = (opt.value == Config.ShaderPreset) and P.BTN_TEXT_ON or P.BTN_TEXT
-        b.Font = Enum.Font.GothamMedium; b.TextSize = 9
+        b.Font = Enum.Font.GothamBold; b.TextSize = 9
         b.AutoButtonColor = false; b.Parent = shaderRow
-        corner(b, 11); stroke(b, P.STROKE_SOFT, 1)
+        corner(b, 13); stroke(b, P.PINK_SOFT, 1)
         shaderBtns[opt.value] = b
-        b.MouseButton1Click:Connect(function() selectShader(opt.value); pop(b, 3) end)
+        b.MouseButton1Click:Connect(function() selectShader(opt.value); pop(b, 5) end)
     end
 
-    section(ShaderPage, "🎚️  intensity")
+    section(ShaderPage, "intensity")
     makeSlider(ShaderPage, "strength", 0, 1, Config.ShaderIntensity, "", 2,
         function(v)
             Config.ShaderIntensity = v
@@ -1660,17 +1817,17 @@ local function startMain(profileName, profileData)
 
     local antiInfo = Instance.new("TextLabel")
     antiInfo.Size = UDim2.new(1, 0, 0, 46); antiInfo.BackgroundTransparency = 1
-    antiInfo.Text = "prevents you from being frozen or locked in place by other players."
-    antiInfo.TextColor3 = P.BTN_TEXT; antiInfo.Font = Enum.Font.GothamMedium
+    antiInfo.Text = "🛡️ prevents you from being frozen or locked in place by other players."
+    antiInfo.TextColor3 = P.PINK; antiInfo.Font = Enum.Font.GothamMedium
     antiInfo.TextSize = 10; antiInfo.TextWrapped = true
     antiInfo.TextXAlignment = Enum.TextXAlignment.Left
     antiInfo.TextYAlignment = Enum.TextYAlignment.Top; antiInfo.Parent = AntiPage
 
     local creditsHeader = Instance.new("TextLabel")
-    creditsHeader.Size = UDim2.new(1, 0, 0, 20); creditsHeader.BackgroundTransparency = 1
-    creditsHeader.Text = "✨ made with love by:"
-    creditsHeader.TextColor3 = P.HEADER_TEXT; creditsHeader.Font = Enum.Font.GothamBold
-    creditsHeader.TextSize = 11; creditsHeader.TextXAlignment = Enum.TextXAlignment.Left
+    creditsHeader.Size = UDim2.new(1, 0, 0, 22); creditsHeader.BackgroundTransparency = 1
+    creditsHeader.Text = "💖 made with love by: 💖"
+    creditsHeader.TextColor3 = P.PINK; creditsHeader.Font = Enum.Font.GothamBold
+    creditsHeader.TextSize = 12; creditsHeader.TextXAlignment = Enum.TextXAlignment.Left
     creditsHeader.Parent = CreditsPage
 
     local CREDIT_LIST = {
@@ -1683,42 +1840,42 @@ local function startMain(profileName, profileData)
 
     for _, c in ipairs(CREDIT_LIST) do
         local card = Instance.new("Frame")
-        card.Size = UDim2.new(1, 0, 0, 56); card.BackgroundColor3 = P.BTN_BG
+        card.Size = UDim2.new(1, 0, 0, 58); card.BackgroundColor3 = P.BTN_BG
         card.BorderSizePixel = 0; card.Parent = CreditsPage
-        corner(card, 12); stroke(card, c.color, 1.5)
+        corner(card, 14); stroke(card, c.color, 1.5)
 
         local g = Instance.new("UIGradient", card)
         g.Color = ColorSequence.new(P.BTN_GRAD_A, P.BTN_GRAD_B); g.Rotation = 90
 
         local emojiLbl = Instance.new("TextLabel")
-        emojiLbl.Size = UDim2.new(0, 40, 1, 0); emojiLbl.Position = UDim2.new(0, 6, 0, 0)
+        emojiLbl.Size = UDim2.new(0, 44, 1, 0); emojiLbl.Position = UDim2.new(0, 8, 0, 0)
         emojiLbl.BackgroundTransparency = 1; emojiLbl.Text = c.emoji
-        emojiLbl.TextSize = 26; emojiLbl.Font = Enum.Font.GothamBold; emojiLbl.Parent = card
+        emojiLbl.TextSize = 28; emojiLbl.Font = Enum.Font.GothamBold; emojiLbl.Parent = card
 
         local nameLbl = Instance.new("TextLabel")
-        nameLbl.Size = UDim2.new(1, -56, 0, 18); nameLbl.Position = UDim2.new(0, 52, 0, 8)
+        nameLbl.Size = UDim2.new(1, -60, 0, 18); nameLbl.Position = UDim2.new(0, 56, 0, 8)
         nameLbl.BackgroundTransparency = 1; nameLbl.Text = c.name
         nameLbl.TextColor3 = P.HEADER_TEXT; nameLbl.Font = Enum.Font.GothamBold
         nameLbl.TextSize = 12; nameLbl.TextXAlignment = Enum.TextXAlignment.Left; nameLbl.Parent = card
 
         local roleLbl = Instance.new("TextLabel")
-        roleLbl.Size = UDim2.new(1, -56, 0, 14); roleLbl.Position = UDim2.new(0, 52, 0, 24)
-        roleLbl.BackgroundTransparency = 1; roleLbl.Text = c.role
-        roleLbl.TextColor3 = P.BTN_TEXT; roleLbl.Font = Enum.Font.GothamMedium
+        roleLbl.Size = UDim2.new(1, -60, 0, 14); roleLbl.Position = UDim2.new(0, 56, 0, 26)
+        roleLbl.BackgroundTransparency = 1; roleLbl.Text = "💕 " .. c.role
+        roleLbl.TextColor3 = P.PINK; roleLbl.Font = Enum.Font.GothamMedium
         roleLbl.TextSize = 9; roleLbl.TextXAlignment = Enum.TextXAlignment.Left; roleLbl.Parent = card
 
         local descLbl = Instance.new("TextLabel")
-        descLbl.Size = UDim2.new(1, -56, 0, 12); descLbl.Position = UDim2.new(0, 52, 0, 38)
+        descLbl.Size = UDim2.new(1, -60, 0, 12); descLbl.Position = UDim2.new(0, 56, 0, 40)
         descLbl.BackgroundTransparency = 1; descLbl.Text = c.desc
         descLbl.TextColor3 = P.FOOTER; descLbl.Font = Enum.Font.Gotham
         descLbl.TextSize = 9; descLbl.TextXAlignment = Enum.TextXAlignment.Left; descLbl.Parent = card
     end
 
     local thanksLbl = Instance.new("TextLabel")
-    thanksLbl.Size = UDim2.new(1, 0, 0, 30); thanksLbl.BackgroundTransparency = 1
-    thanksLbl.Text = "thank you for using livyii.main 🍮💛"
-    thanksLbl.TextColor3 = P.FOOTER; thanksLbl.Font = Enum.Font.GothamMedium
-    thanksLbl.TextSize = 9; thanksLbl.TextWrapped = true
+    thanksLbl.Size = UDim2.new(1, 0, 0, 32); thanksLbl.BackgroundTransparency = 1
+    thanksLbl.Text = "thank you for using livyii.main 🍮💛💖"
+    thanksLbl.TextColor3 = P.PINK; thanksLbl.Font = Enum.Font.GothamMedium
+    thanksLbl.TextSize = 10; thanksLbl.TextWrapped = true
     thanksLbl.TextXAlignment = Enum.TextXAlignment.Center; thanksLbl.Parent = CreditsPage
 
     local minimized = false
@@ -1783,7 +1940,7 @@ local function startMain(profileName, profileData)
                 if Config.AimNameTag then
                     aimBillboard.Adornee = head
                     aimBillboard.Enabled = true
-                    aimTagLbl.Text = "🎯 " .. (target.DisplayName or target.Name)
+                    aimTagLbl.Text = "💖 " .. (target.DisplayName or target.Name)
                 else
                     aimBillboard.Enabled = false
                 end
@@ -1813,9 +1970,10 @@ local function startMain(profileName, profileData)
         end
     end)
 
-    print("🍮 livyii.main loaded 🍮✨")
+    print("🍮 livyii.main loaded 💖✨")
 end
 
+-- ═══ KEY SYSTEM ═══
 local function showKeySystem(onSuccess)
     local KeyGui = Instance.new("ScreenGui")
     KeyGui.Name = "livyii.key"; KeyGui.ResetOnSpawn = false
@@ -1824,37 +1982,65 @@ local function showKeySystem(onSuccess)
     parentGui(KeyGui)
 
     local Frame = Instance.new("Frame")
-    Frame.Size = UDim2.new(0, 260, 0, 180)
-    Frame.Position = UDim2.new(0.5, -130, 0.5, -90)
+    Frame.Size = UDim2.new(0, 270, 0, 195)
+    Frame.Position = UDim2.new(0.5, -135, 0.5, -97)
     Frame.BackgroundColor3 = P.BG; Frame.BorderSizePixel = 0
     Frame.Active = true; Frame.Parent = KeyGui
-    corner(Frame, 22); stroke(Frame, P.STROKE_SOFT, 1.5)
+    corner(Frame, 24); stroke(Frame, P.PINK, 2)
+
+    do
+        local glow = Instance.new("Frame")
+        glow.Size = UDim2.new(1, 10, 1, 10); glow.Position = UDim2.new(0, -5, 0, -5)
+        glow.BackgroundColor3 = P.PINK_SOFT; glow.BackgroundTransparency = 0.7
+        glow.BorderSizePixel = 0; glow.ZIndex = -2; glow.Parent = Frame
+        corner(glow, 28)
+    end
 
     do
         local sh = Instance.new("Frame")
         sh.Size = UDim2.new(1, 0, 1, 0); sh.Position = UDim2.new(0, 0, 0, 5)
-        sh.BackgroundColor3 = P.SHADOW; sh.BackgroundTransparency = 0.7
+        sh.BackgroundColor3 = P.SHADOW; sh.BackgroundTransparency = 0.6
         sh.BorderSizePixel = 0; sh.ZIndex = -1; sh.Parent = Frame
-        corner(sh, 22)
+        corner(sh, 24)
     end
 
     do
         local g = Instance.new("UIGradient", Frame)
-        g.Color = ColorSequence.new(Color3.fromRGB(255, 253, 240), Color3.fromRGB(255, 245, 220))
+        g.Color = ColorSequence.new(Color3.fromRGB(255, 253, 245), Color3.fromRGB(255, 242, 235))
         g.Rotation = 90
     end
 
     local Header = Instance.new("TextLabel")
-    Header.Size = UDim2.new(1, 0, 0, 36); Header.BackgroundColor3 = P.HEADER_A
+    Header.Size = UDim2.new(1, 0, 0, 40); Header.BackgroundColor3 = P.HEADER_A
     Header.BorderSizePixel = 0; Header.Text = "🍮  livyii.main  🍮"
     Header.TextColor3 = P.HEADER_TEXT; Header.Font = Enum.Font.GothamBold
-    Header.TextSize = 12; Header.Parent = Frame
-    corner(Header, 22); gradient(Header, P.HEADER_A, P.HEADER_B, 90)
+    Header.TextSize = 13; Header.Parent = Frame
+    corner(Header, 24); gradient(Header, P.HEADER_A, P.HEADER_B, 90)
 
     do
         local fix = Instance.new("Frame")
-        fix.Size = UDim2.new(1, 0, 0, 22); fix.Position = UDim2.new(0, 0, 1, -22)
+        fix.Size = UDim2.new(1, 0, 0, 24); fix.Position = UDim2.new(0, 0, 1, -24)
         fix.BackgroundColor3 = P.HEADER_B; fix.BorderSizePixel = 0; fix.Parent = Header
+    end
+
+    -- cute hearts
+    for _, side in ipairs({
+        { pos = UDim2.new(0, 10, 0.5, -10), text = "💕" },
+        { pos = UDim2.new(1, -32, 0.5, -10), text = "💕" },
+    }) do
+        local hh = Instance.new("TextLabel")
+        hh.Size = UDim2.new(0, 20, 0, 20); hh.Position = side.pos
+        hh.BackgroundTransparency = 1; hh.Text = side.text
+        hh.TextSize = 14; hh.Font = Enum.Font.GothamBold; hh.ZIndex = 6
+        hh.Parent = Header
+        task.spawn(function()
+            while hh.Parent do
+                tween(hh, { Rotation = 15 }, 0.7, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
+                task.wait(0.7)
+                tween(hh, { Rotation = -15 }, 0.7, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
+                task.wait(0.7)
+            end
+        end)
     end
 
     local dragActive, dragStart, dragOrigin, dragInput = false, nil, nil, nil
@@ -1876,45 +2062,45 @@ local function showKeySystem(onSuccess)
     end)
 
     local CloseB = Instance.new("TextButton")
-    CloseB.Size = UDim2.new(0, 26, 0, 26); CloseB.Position = UDim2.new(1, -32, 0, 5)
+    CloseB.Size = UDim2.new(0, 28, 0, 28); CloseB.Position = UDim2.new(1, -34, 0, 6)
     CloseB.BackgroundColor3 = P.BTN_BG; CloseB.Text = "✕"
     CloseB.TextColor3 = P.HEADER_TEXT; CloseB.Font = Enum.Font.GothamBold
-    CloseB.TextSize = 12; CloseB.AutoButtonColor = false
+    CloseB.TextSize = 13; CloseB.AutoButtonColor = false
     CloseB.ZIndex = 10; CloseB.Parent = Header
-    corner(CloseB, 13); stroke(CloseB, P.STROKE_SOFT, 1)
+    corner(CloseB, 14); stroke(CloseB, P.PINK_SOFT, 1.5)
     CloseB.MouseButton1Click:Connect(function()
         KeyGui:Destroy()
         warn("🍮 livyii.main: key not entered. re-execute to try again.")
     end)
 
     local Sub = Instance.new("TextLabel")
-    Sub.Size = UDim2.new(1, -30, 0, 18); Sub.Position = UDim2.new(0, 15, 0, 48)
-    Sub.BackgroundTransparency = 1; Sub.Text = "enter this week's key 🔑"
-    Sub.TextColor3 = P.BTN_TEXT; Sub.Font = Enum.Font.GothamMedium
-    Sub.TextSize = 10; Sub.TextXAlignment = Enum.TextXAlignment.Left; Sub.Parent = Frame
+    Sub.Size = UDim2.new(1, -30, 0, 20); Sub.Position = UDim2.new(0, 15, 0, 50)
+    Sub.BackgroundTransparency = 1; Sub.Text = "💖 enter this week's key 💖"
+    Sub.TextColor3 = P.PINK; Sub.Font = Enum.Font.GothamBold
+    Sub.TextSize = 11; Sub.TextXAlignment = Enum.TextXAlignment.Center; Sub.Parent = Frame
 
     local Box = Instance.new("TextBox")
-    Box.Size = UDim2.new(1, -30, 0, 34); Box.Position = UDim2.new(0, 15, 0, 70)
+    Box.Size = UDim2.new(1, -30, 0, 36); Box.Position = UDim2.new(0, 15, 0, 74)
     Box.BackgroundColor3 = P.BTN_BG; Box.Text = ""
     Box.PlaceholderText = "type key here..."
-    Box.PlaceholderColor3 = Color3.fromRGB(220, 205, 175)
-    Box.TextColor3 = P.BTN_TEXT_ON; Box.Font = Enum.Font.GothamMedium
-    Box.TextSize = 12; Box.TextXAlignment = Enum.TextXAlignment.Center
+    Box.PlaceholderColor3 = Color3.fromRGB(230, 195, 195)
+    Box.TextColor3 = P.BTN_TEXT_ON; Box.Font = Enum.Font.GothamBold
+    Box.TextSize = 13; Box.TextXAlignment = Enum.TextXAlignment.Center
     Box.ClearTextOnFocus = false; Box.Parent = Frame
-    corner(Box, 13); stroke(Box, P.STROKE_SOFT, 1)
+    corner(Box, 14); stroke(Box, P.PINK_SOFT, 1.5)
 
     local Submit = Instance.new("TextButton")
-    Submit.Size = UDim2.new(1, -30, 0, 34); Submit.Position = UDim2.new(0, 15, 0, 112)
+    Submit.Size = UDim2.new(1, -30, 0, 36); Submit.Position = UDim2.new(0, 15, 0, 118)
     Submit.BackgroundColor3 = P.BTN_BG_ON; Submit.Text = "🍮  unlock  🍮"
     Submit.TextColor3 = P.BTN_TEXT_ON; Submit.Font = Enum.Font.GothamBold
-    Submit.TextSize = 12; Submit.AutoButtonColor = false; Submit.Parent = Frame
-    corner(Submit, 13); stroke(Submit, P.STROKE_SOFT, 1)
+    Submit.TextSize = 13; Submit.AutoButtonColor = false; Submit.Parent = Frame
+    corner(Submit, 14); stroke(Submit, P.PINK, 2)
 
     local Status = Instance.new("TextLabel")
-    Status.Size = UDim2.new(1, -30, 0, 16); Status.Position = UDim2.new(0, 15, 1, -22)
+    Status.Size = UDim2.new(1, -30, 0, 18); Status.Position = UDim2.new(0, 15, 1, -24)
     Status.BackgroundTransparency = 1; Status.Text = ""
     Status.TextColor3 = P.BTN_TEXT; Status.Font = Enum.Font.GothamMedium
-    Status.TextSize = 10; Status.TextXAlignment = Enum.TextXAlignment.Left; Status.Parent = Frame
+    Status.TextSize = 10; Status.TextXAlignment = Enum.TextXAlignment.Center; Status.Parent = Frame
 
     Submit.MouseButton1Down:Connect(function() tween(Submit, { BackgroundColor3 = P.FILL_A }, 0.08) end)
     Submit.MouseButton1Up:Connect(function() tween(Submit, { BackgroundColor3 = P.BTN_BG_ON }, 0.15, Enum.EasingStyle.Back) end)
@@ -1934,11 +2120,12 @@ local function showKeySystem(onSuccess)
         end
 
         if entered == currentKey then
-            Status.Text = "correct! next... ✨"
+            Status.Text = "correct! next... 💖"
             Status.TextColor3 = P.SUCCESS
             tween(Submit, { BackgroundColor3 = P.SUCCESS }, 0.2)
+            heartPop(KeyGui, UDim2.new(0.5, 0, 0.85, 0))
             task.wait(0.6)
-            _keyPassed = true          -- 🔓 unlock the gate
+            _keyPassed = true
             KeyGui:Destroy()
             onSuccess()
         else
@@ -1958,14 +2145,14 @@ local function showKeySystem(onSuccess)
     Box.FocusLost:Connect(function(enterPressed) if enterPressed then trySubmit() end end)
 
     Frame.Size = UDim2.new(0, 0, 0, 0)
-    tween(Frame, { Size = UDim2.new(0, 260, 0, 180) }, 0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+    tween(Frame, { Size = UDim2.new(0, 270, 0, 195) }, 0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
 end
 
--- BOOT
+-- ═══ BOOT ═══
 local profileName, profileData = getLocalProfile()
 
 if profileName then
-    _keyPassed = true          -- 🔓 staff auto-pass
+    _keyPassed = true
     Platform.isMobile = UserInputService.TouchEnabled and not UserInputService.MouseEnabled
     showWelcomeToast(profileName, profileData)
     task.wait(1.2)
