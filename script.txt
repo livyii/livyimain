@@ -1,4 +1,4 @@
--- livyii.main - Profiles + Credits + Weekly Keysystem
+-- livyii.main - Fixed Shaders Edition
 local Players          = game:GetService("Players")
 local RunService       = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -10,29 +10,25 @@ local LocalPlayer = Players.LocalPlayer
 local Camera      = workspace.CurrentCamera
 local Mouse       = LocalPlayer:GetMouse()
 
--- PROFILES (free access, no key)
+local isMobile = UserInputService.TouchEnabled and not UserInputService.MouseEnabled
+
+-- PROFILES
 local PROFILES = {
-    ["livyii"]      = { role = "developer & owner",        emoji = "👑", color = Color3.fromRGB(255, 220, 130), msg = "welcome back, boss!" },
-    ["livyiilolly"] = { role = "developer",                emoji = "💻", color = Color3.fromRGB(200, 220, 255), msg = "hii lolly!" },
+    ["livyiilolly"]      = { role = "developer & owner",        emoji = "👑", color = Color3.fromRGB(255, 220, 130), msg = "welcome back, boss!" },
+    ["2lmost"] = { role = "developer",                emoji = "💻", color = Color3.fromRGB(200, 220, 255), msg = "hii rave!" },
     ["narvstar"]    = { role = "cutesy community manager", emoji = "🌸", color = Color3.fromRGB(255, 200, 220), msg = "hii narv!" },
 }
 
 local function getLocalProfile()
     local name = string.lower(LocalPlayer.Name)
     for uname, data in pairs(PROFILES) do
-        if string.lower(uname) == name then
-            return uname, data
-        end
+        if string.lower(uname) == name then return uname, data end
     end
     return nil, nil
 end
 
 -- WEEKLY KEYS
-local KEYS = {
-    "pompom", "livyii", "imjustlit",
-    "bestscript", "bloxycola", "supernatural",
-}
-
+local KEYS = { "pompom", "livyii", "imjustlit", "bestscript", "bloxycola", "supernatural" }
 local function getCurrentKey()
     local weekNum = math.floor(os.time() / 604800)
     local idx = (weekNum % #KEYS) + 1
@@ -44,53 +40,59 @@ local Config = {
     CamlockYOffset = 0, CamlockPart = "Head",
     HitboxExpander = false, HitboxSize = 5, HitboxTransparency = 0.6,
     HitboxColor = Color3.fromRGB(255, 200, 120), HitboxActive = false,
+    AimAssist = false, AimFOV = 300, AimHighlight = true, AimNameTag = true, AimFOVRing = true,
+    AimColor = Color3.fromRGB(255, 180, 220),
     FogEnabled = false, FogEnd = 500,
     SkyEnabled = false, SkyIntensity = 0.5,
     ShaderEnabled = false, ShaderPreset = "pudding", ShaderIntensity = 0.5,
     Antilock = false,
 }
 
+-- CUTESIER PALETTE
 local P = {
-    BG          = Color3.fromRGB(255, 251, 232),
-    BG_SOFT     = Color3.fromRGB(255, 253, 244),
-    HEADER_A    = Color3.fromRGB(255, 248, 200),
-    HEADER_B    = Color3.fromRGB(255, 236, 170),
-    HEADER_TEXT = Color3.fromRGB(124,  58,  45),
-    BTN_BG      = Color3.fromRGB(255, 255, 250),
-    BTN_BG_ON   = Color3.fromRGB(255, 244, 200),
+    BG          = Color3.fromRGB(255, 248, 238),
+    BG_SOFT     = Color3.fromRGB(255, 252, 248),
+    HEADER_A    = Color3.fromRGB(255, 240, 220),
+    HEADER_B    = Color3.fromRGB(255, 220, 230),
+    HEADER_TEXT = Color3.fromRGB(180,  90, 120),
+    BTN_BG      = Color3.fromRGB(255, 253, 250),
+    BTN_BG_ON   = Color3.fromRGB(255, 235, 240),
     BTN_GRAD_A  = Color3.fromRGB(255, 255, 252),
-    BTN_GRAD_B  = Color3.fromRGB(255, 250, 235),
-    BTN_TEXT    = Color3.fromRGB(139,  90,  43),
-    BTN_TEXT_ON = Color3.fromRGB(107,  68,  35),
-    STROKE      = Color3.fromRGB(240, 220, 160),
-    STROKE_SOFT = Color3.fromRGB(252, 240, 205),
-    TRACK       = Color3.fromRGB(250, 242, 218),
-    FILL_A      = Color3.fromRGB(255, 238, 180),
-    FILL_B      = Color3.fromRGB(238, 205, 130),
-    DOT_OFF     = Color3.fromRGB(238, 230, 210),
-    DOT_ON      = Color3.fromRGB(210, 165, 115),
-    FOOTER      = Color3.fromRGB(178, 148, 118),
-    GEAR_BG     = Color3.fromRGB(255, 250, 225),
-    LOCK_IDLE_A = Color3.fromRGB(255, 250, 220),
-    LOCK_IDLE_B = Color3.fromRGB(255, 240, 190),
-    LOCK_ON_A   = Color3.fromRGB(255, 230, 175),
-    LOCK_ON_B   = Color3.fromRGB(238, 205, 130),
-    HB_IDLE_A   = Color3.fromRGB(255, 250, 220),
-    HB_IDLE_B   = Color3.fromRGB(255, 242, 195),
-    HB_ON_A     = Color3.fromRGB(255, 230, 175),
-    HB_ON_B     = Color3.fromRGB(238, 205, 130),
-    TOGGLE_A    = Color3.fromRGB(255, 240, 185),
-    TOGGLE_B    = Color3.fromRGB(238, 205, 130),
-    SHADOW      = Color3.fromRGB(220, 190, 130),
-    ERROR       = Color3.fromRGB(220, 90, 90),
-    SUCCESS     = Color3.fromRGB(140, 190, 120),
+    BTN_GRAD_B  = Color3.fromRGB(255, 248, 245),
+    BTN_TEXT    = Color3.fromRGB(180, 110, 130),
+    BTN_TEXT_ON = Color3.fromRGB(150,  75, 110),
+    STROKE      = Color3.fromRGB(255, 210, 220),
+    STROKE_SOFT = Color3.fromRGB(255, 230, 235),
+    TRACK       = Color3.fromRGB(255, 240, 242),
+    FILL_A      = Color3.fromRGB(255, 220, 230),
+    FILL_B      = Color3.fromRGB(255, 180, 200),
+    DOT_OFF     = Color3.fromRGB(250, 235, 240),
+    DOT_ON      = Color3.fromRGB(255, 160, 190),
+    FOOTER      = Color3.fromRGB(210, 170, 180),
+    GEAR_BG     = Color3.fromRGB(255, 245, 248),
+    LOCK_IDLE_A = Color3.fromRGB(255, 245, 248),
+    LOCK_IDLE_B = Color3.fromRGB(255, 230, 235),
+    LOCK_ON_A   = Color3.fromRGB(255, 215, 230),
+    LOCK_ON_B   = Color3.fromRGB(255, 165, 200),
+    HB_IDLE_A   = Color3.fromRGB(255, 245, 248),
+    HB_IDLE_B   = Color3.fromRGB(255, 232, 240),
+    HB_ON_A     = Color3.fromRGB(255, 215, 230),
+    HB_ON_B     = Color3.fromRGB(255, 165, 200),
+    AIM_IDLE_A  = Color3.fromRGB(255, 245, 248),
+    AIM_IDLE_B  = Color3.fromRGB(255, 235, 240),
+    AIM_ON_A    = Color3.fromRGB(255, 210, 225),
+    AIM_ON_B    = Color3.fromRGB(255, 155, 195),
+    TOGGLE_A    = Color3.fromRGB(255, 220, 230),
+    TOGGLE_B    = Color3.fromRGB(255, 180, 205),
+    SHADOW      = Color3.fromRGB(255, 200, 215),
+    ERROR       = Color3.fromRGB(230, 110, 130),
+    SUCCESS     = Color3.fromRGB(160, 210, 180),
 }
 
 pcall(function()
-    if CoreGui:FindFirstChild("livyii.main")  then CoreGui["livyii.main"]:Destroy() end
-    if CoreGui:FindFirstChild("livyii.intro") then CoreGui["livyii.intro"]:Destroy() end
-    if CoreGui:FindFirstChild("livyii.key")   then CoreGui["livyii.key"]:Destroy() end
-    if CoreGui:FindFirstChild("livyii.welcome") then CoreGui["livyii.welcome"]:Destroy() end
+    for _, n in ipairs({"livyii.main", "livyii.intro", "livyii.key", "livyii.welcome"}) do
+        if CoreGui:FindFirstChild(n) then CoreGui[n]:Destroy() end
+    end
 end)
 
 local function tween(obj, props, t, style, dir)
@@ -100,7 +102,7 @@ local function tween(obj, props, t, style, dir)
 end
 local function corner(parent, r)
     local c = Instance.new("UICorner", parent)
-    c.CornerRadius = UDim.new(0, r or 12)
+    c.CornerRadius = UDim.new(0, r or 14)
     return c
 end
 local function stroke(parent, color, thickness)
@@ -139,7 +141,7 @@ local function showWelcomeToast(uname, data)
     f.BackgroundColor3 = P.BG
     f.BorderSizePixel = 0
     f.Parent = gui
-    corner(f, 18)
+    corner(f, 20)
     stroke(f, data.color, 2)
 
     local g = Instance.new("UIGradient", f)
@@ -185,7 +187,8 @@ local function showWelcomeToast(uname, data)
 end
 
 local function startMain(profileName, profileData)
-    local function playIntro()
+    -- Intro
+    do
         local blur = Instance.new("BlurEffect")
         blur.Size = 0
         blur.Parent = Lighting
@@ -201,11 +204,11 @@ local function startMain(profileName, profileData)
 
         local Veil = Instance.new("Frame")
         Veil.Size = UDim2.new(1, 0, 1, 0)
-        Veil.BackgroundColor3 = Color3.fromRGB(255, 250, 224)
+        Veil.BackgroundColor3 = Color3.fromRGB(255, 245, 240)
         Veil.BackgroundTransparency = 1
         Veil.BorderSizePixel = 0
         Veil.Parent = IntroGui
-        gradient(Veil, Color3.fromRGB(255, 248, 200), Color3.fromRGB(252, 232, 160), 90)
+        gradient(Veil, Color3.fromRGB(255, 245, 240), Color3.fromRGB(255, 220, 230), 90)
 
         local Center = Instance.new("Frame")
         Center.Size = UDim2.new(0, 320, 0, 140)
@@ -217,7 +220,7 @@ local function startMain(profileName, profileData)
         TitleLbl.Size = UDim2.new(1, 0, 0, 60)
         TitleLbl.Position = UDim2.new(0, 0, 0, 10)
         TitleLbl.BackgroundTransparency = 1
-        TitleLbl.Text = "livyii.main"
+        TitleLbl.Text = "🍮 livyii.main 🍮"
         TitleLbl.TextColor3 = P.HEADER_TEXT
         TitleLbl.Font = Enum.Font.GothamBold
         TitleLbl.TextSize = 34
@@ -300,7 +303,7 @@ local function startMain(profileName, profileData)
 
         task.wait(1.6)
         SubLbl.Text = "loaded ✨"
-        SubLbl.TextColor3 = Color3.fromRGB(200, 155, 110)
+        SubLbl.TextColor3 = Color3.fromRGB(220, 150, 180)
         task.wait(0.85)
 
         tween(TitleLbl, { TextTransparency = 1 }, 0.5)
@@ -319,8 +322,7 @@ local function startMain(profileName, profileData)
         blur:Destroy()
     end
 
-    playIntro()
-
+    -- Main GUI
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name = "livyii.main"
     ScreenGui.ResetOnSpawn = false
@@ -331,39 +333,39 @@ local function startMain(profileName, profileData)
     else ScreenGui.Parent = CoreGui end
 
     local Main = Instance.new("Frame")
-    Main.Size = UDim2.new(0, 235, 0, 295)
-    Main.Position = UDim2.new(0.5, -117, 0.5, -147)
+    Main.Size = UDim2.new(0, 245, 0, 305)
+    Main.Position = UDim2.new(0.5, -122, 0.5, -152)
     Main.BackgroundColor3 = P.BG
     Main.BorderSizePixel = 0
     Main.Active = false
     Main.Draggable = false
     Main.Parent = ScreenGui
-    corner(Main, 22)
+    corner(Main, 24)
     stroke(Main, P.STROKE_SOFT, 1.5)
 
     do
         local sh = Instance.new("Frame")
         sh.Size = UDim2.new(1, 0, 1, 0)
-        sh.Position = UDim2.new(0, 0, 0, 4)
+        sh.Position = UDim2.new(0, 0, 0, 5)
         sh.BackgroundColor3 = P.SHADOW
-        sh.BackgroundTransparency = 0.75
+        sh.BackgroundTransparency = 0.7
         sh.BorderSizePixel = 0
         sh.ZIndex = -1
         sh.Parent = Main
-        corner(sh, 22)
+        corner(sh, 24)
     end
 
     do
         local g = Instance.new("UIGradient", Main)
         g.Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0.0, Color3.fromRGB(255, 253, 240)),
-            ColorSequenceKeypoint.new(1.0, Color3.fromRGB(255, 248, 220)),
+            ColorSequenceKeypoint.new(0.0, Color3.fromRGB(255, 253, 250)),
+            ColorSequenceKeypoint.new(1.0, Color3.fromRGB(255, 242, 245)),
         })
         g.Rotation = 90
     end
 
     local Title = Instance.new("TextLabel")
-    Title.Size = UDim2.new(1, 0, 0, 36)
+    Title.Size = UDim2.new(1, 0, 0, 38)
     Title.BackgroundColor3 = P.HEADER_A
     Title.BorderSizePixel = 0
     Title.Text = "🍮  livyii.main  🍮"
@@ -372,12 +374,12 @@ local function startMain(profileName, profileData)
     Title.TextSize = 12
     Title.TextYAlignment = Enum.TextYAlignment.Center
     Title.Parent = Main
-    corner(Title, 22)
+    corner(Title, 24)
     gradient(Title, P.HEADER_A, P.HEADER_B, 90)
 
     local TitleFix = Instance.new("Frame")
-    TitleFix.Size = UDim2.new(1, 0, 0, 22)
-    TitleFix.Position = UDim2.new(0, 0, 1, -22)
+    TitleFix.Size = UDim2.new(1, 0, 0, 24)
+    TitleFix.Position = UDim2.new(0, 0, 1, -24)
     TitleFix.BackgroundColor3 = P.HEADER_B
     TitleFix.BorderSizePixel = 0
     TitleFix.Parent = Title
@@ -386,7 +388,7 @@ local function startMain(profileName, profileData)
         local hl = Instance.new("Frame")
         hl.Size = UDim2.new(1, -30, 0, 1)
         hl.Position = UDim2.new(0, 15, 0, 2)
-        hl.BackgroundColor3 = Color3.fromRGB(255, 255, 240)
+        hl.BackgroundColor3 = Color3.fromRGB(255, 255, 250)
         hl.BackgroundTransparency = 0.4
         hl.BorderSizePixel = 0
         hl.ZIndex = 3
@@ -396,8 +398,8 @@ local function startMain(profileName, profileData)
 
     if profileName and profileData then
         local badge = Instance.new("TextLabel")
-        badge.Size = UDim2.new(0, 90, 0, 14)
-        badge.Position = UDim2.new(0, 8, 1, -17)
+        badge.Size = UDim2.new(0, 95, 0, 14)
+        badge.Position = UDim2.new(0, 8, 1, -18)
         badge.BackgroundColor3 = profileData.color
         badge.BackgroundTransparency = 0.35
         badge.Text = profileData.emoji .. " " .. profileData.role
@@ -439,7 +441,7 @@ local function startMain(profileName, profileData)
 
     local function headerBtn(text, pos)
         local b = Instance.new("TextButton")
-        b.Size = UDim2.new(0, 24, 0, 24)
+        b.Size = UDim2.new(0, 26, 0, 26)
         b.Position = pos
         b.BackgroundColor3 = P.BTN_BG
         b.Text = text
@@ -449,23 +451,23 @@ local function startMain(profileName, profileData)
         b.AutoButtonColor = false
         b.ZIndex = 10
         b.Parent = Title
-        corner(b, 12)
+        corner(b, 13)
         stroke(b, P.STROKE_SOFT, 1)
         b.MouseButton1Down:Connect(function()
-            tween(b, { Size = UDim2.new(0, 20, 0, 20), Position = UDim2.new(pos.X.Scale, pos.X.Offset + 2, pos.Y.Scale, pos.Y.Offset + 2) }, 0.08)
+            tween(b, { Size = UDim2.new(0, 22, 0, 22), Position = UDim2.new(pos.X.Scale, pos.X.Offset + 2, pos.Y.Scale, pos.Y.Offset + 2) }, 0.08)
         end)
         b.MouseButton1Up:Connect(function()
-            tween(b, { Size = UDim2.new(0, 24, 0, 24), Position = pos }, 0.14, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+            tween(b, { Size = UDim2.new(0, 26, 0, 26), Position = pos }, 0.14, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
         end)
         return b
     end
 
-    local MinBtn   = headerBtn("—", UDim2.new(1, -58, 0, 6))
-    local CloseBtn = headerBtn("✕", UDim2.new(1, -30, 0, 6))
+    local MinBtn   = headerBtn("—", UDim2.new(1, -60, 0, 6))
+    local CloseBtn = headerBtn("✕", UDim2.new(1, -32, 0, 6))
 
     local PageHolder = Instance.new("Frame")
-    PageHolder.Size = UDim2.new(1, -14, 1, -56)
-    PageHolder.Position = UDim2.new(0, 7, 0, 42)
+    PageHolder.Size = UDim2.new(1, -14, 1, -58)
+    PageHolder.Position = UDim2.new(0, 7, 0, 44)
     PageHolder.BackgroundTransparency = 1
     PageHolder.ClipsDescendants = true
     PageHolder.Parent = Main
@@ -480,7 +482,7 @@ local function startMain(profileName, profileData)
     Footer.Size = UDim2.new(1, -14, 0, 14)
     Footer.Position = UDim2.new(0, 7, 1, -18)
     Footer.BackgroundTransparency = 1
-    Footer.Text = "livyii.main ✿ mobile & pc"
+    Footer.Text = "livyii.main ✿ made with love"
     Footer.TextColor3 = P.FOOTER
     Footer.Font = Enum.Font.Gotham
     Footer.TextSize = 9
@@ -517,7 +519,7 @@ local function startMain(profileName, profileData)
 
     local function makeSlider(parent, label, minV, maxV, default, suffix, decimals, onChange)
         local Holder = Instance.new("Frame")
-        Holder.Size = UDim2.new(1, 0, 0, 40)
+        Holder.Size = UDim2.new(1, 0, 0, 42)
         Holder.BackgroundTransparency = 1
         Holder.Parent = parent
 
@@ -543,7 +545,7 @@ local function startMain(profileName, profileData)
 
         local TrackHit = Instance.new("TextButton")
         TrackHit.Size = UDim2.new(1, -4, 0, 18)
-        TrackHit.Position = UDim2.new(0, 2, 0, 18)
+        TrackHit.Position = UDim2.new(0, 2, 0, 20)
         TrackHit.BackgroundTransparency = 1
         TrackHit.Text = ""
         TrackHit.AutoButtonColor = false
@@ -552,7 +554,7 @@ local function startMain(profileName, profileData)
         TrackHit.Parent = Holder
 
         local Track = Instance.new("Frame")
-        Track.Size = UDim2.new(1, -4, 0, 9)
+        Track.Size = UDim2.new(1, -4, 0, 10)
         Track.Position = UDim2.new(0, 2, 0.5, -5)
         Track.BackgroundColor3 = P.TRACK
         Track.BorderSizePixel = 0
@@ -560,9 +562,9 @@ local function startMain(profileName, profileData)
         Track.Parent = TrackHit
         corner(Track, 5)
         local ts = Instance.new("UIStroke", Track)
-        ts.Color = Color3.fromRGB(232, 218, 190)
+        ts.Color = P.STROKE_SOFT
         ts.Thickness = 1
-        ts.Transparency = 0.5
+        ts.Transparency = 0.4
 
         local Fill = Instance.new("Frame")
         Fill.Size = UDim2.new(0, 0, 1, 0)
@@ -577,11 +579,11 @@ local function startMain(profileName, profileData)
         Knob.Size = UDim2.new(0, 16, 0, 16)
         Knob.AnchorPoint = Vector2.new(0.5, 0.5)
         Knob.Position = UDim2.new(0, 0, 0.5, 0)
-        Knob.BackgroundColor3 = Color3.fromRGB(255, 255, 250)
+        Knob.BackgroundColor3 = Color3.fromRGB(255, 255, 252)
         Knob.ZIndex = 4
         Knob.Parent = Track
         corner(Knob, 8)
-        stroke(Knob, P.STROKE, 1.5)
+        stroke(Knob, P.FILL_B, 2)
 
         local function fmt(v)
             if decimals == 0 then return tostring(math.floor(v + 0.5)) .. suffix end
@@ -731,7 +733,7 @@ local function startMain(profileName, profileData)
             ColorSequenceKeypoint.new(0.62, Color3.fromRGB(120, 210, 240)),
             ColorSequenceKeypoint.new(0.78, Color3.fromRGB(140, 160, 255)),
             ColorSequenceKeypoint.new(0.90, Color3.fromRGB(200, 150, 250)),
-            ColorSequenceKeypoint.new(1.00, Color3.fromRGB(255, 200, 120)),
+            ColorSequenceKeypoint.new(1.00, Color3.fromRGB(255, 200, 220)),
         })
         hueGrad.Parent = HueStrip
 
@@ -743,7 +745,7 @@ local function startMain(profileName, profileData)
         HueCursor.ZIndex = 3
         HueCursor.Parent = HueHit
         corner(HueCursor, 2)
-        stroke(HueCursor, Color3.fromRGB(150, 150, 150), 1)
+        stroke(HueCursor, Color3.fromRGB(200, 180, 190), 1)
 
         local BrightHit = Instance.new("TextButton")
         BrightHit.Size = UDim2.new(1, -4, 0, 20)
@@ -773,7 +775,7 @@ local function startMain(profileName, profileData)
         BrightCursor.ZIndex = 3
         BrightCursor.Parent = BrightHit
         corner(BrightCursor, 2)
-        stroke(BrightCursor, Color3.fromRGB(150, 150, 150), 1)
+        stroke(BrightCursor, Color3.fromRGB(200, 180, 190), 1)
 
         local PresetRow = Instance.new("Frame")
         PresetRow.Size = UDim2.new(1, 0, 0, 20)
@@ -786,12 +788,12 @@ local function startMain(profileName, profileData)
         presetLayout.Padding = UDim.new(0, 3)
 
         local presets = {
-            Color3.fromRGB(255, 200, 120), Color3.fromRGB(220, 160, 90),
-            Color3.fromRGB(255, 240, 160), Color3.fromRGB(180, 130, 80),
-            Color3.fromRGB(255, 150, 130), Color3.fromRGB(140, 220, 140),
-            Color3.fromRGB(120, 210, 240), Color3.fromRGB(140, 160, 255),
-            Color3.fromRGB(200, 150, 250), Color3.fromRGB(255, 255, 255),
-            Color3.fromRGB(150, 150, 150), Color3.fromRGB( 25,  25,  25),
+            Color3.fromRGB(255, 200, 220), Color3.fromRGB(255, 155, 195),
+            Color3.fromRGB(255, 100, 140), Color3.fromRGB(255,  60,  60),
+            Color3.fromRGB(255, 150,  80), Color3.fromRGB(255, 220, 100),
+            Color3.fromRGB(140, 220, 140), Color3.fromRGB(120, 210, 240),
+            Color3.fromRGB(140, 160, 255), Color3.fromRGB(200, 150, 250),
+            Color3.fromRGB(255, 255, 255), Color3.fromRGB( 25,  25,  25),
         }
 
         local currentHue, currentSat, currentVal = defaultColor:ToHSV()
@@ -881,7 +883,7 @@ local function startMain(profileName, profileData)
             commit(Color3.fromRGB(v, math.floor(cur.G * 255 + 0.5), math.floor(cur.B * 255 + 0.5)))
         end)
         RSlider.Position = UDim2.new(0, 0, 0, 96)
-        RSlider.Size = UDim2.new(1, 0, 0, 40)
+        RSlider.Size = UDim2.new(1, 0, 0, 42)
 
         HueCursor.Position = UDim2.new(currentHue, 0, 0.5, 0)
         if currentVal < 1 and currentSat == 1 then
@@ -908,7 +910,7 @@ local function startMain(profileName, profileData)
     end
     local function row(parent, height)
         local r = Instance.new("Frame")
-        r.Size = UDim2.new(1, 0, 0, height or 44)
+        r.Size = UDim2.new(1, 0, 0, height or 46)
         r.BackgroundTransparency = 1
         r.Parent = parent
         local l = Instance.new("UIListLayout", r)
@@ -924,7 +926,7 @@ local function startMain(profileName, profileData)
         Btn.Text = ""
         Btn.AutoButtonColor = false
         Btn.Parent = parent
-        corner(Btn, 13)
+        corner(Btn, 14)
         stroke(Btn, P.STROKE_SOFT, 1)
 
         local bg = Instance.new("UIGradient", Btn)
@@ -948,7 +950,7 @@ local function startMain(profileName, profileData)
 
         local Dot = Instance.new("Frame")
         Dot.Size = UDim2.new(0, 8, 0, 8)
-        Dot.Position = UDim2.new(0, 11, 1, -15)
+        Dot.Position = UDim2.new(0, 11, 1, -16)
         Dot.BackgroundColor3 = P.DOT_OFF
         Dot.ZIndex = 2
         Dot.Parent = Btn
@@ -956,7 +958,7 @@ local function startMain(profileName, profileData)
 
         local StatusLbl = Instance.new("TextLabel")
         StatusLbl.Size = UDim2.new(1, -34, 0, 10)
-        StatusLbl.Position = UDim2.new(0, 23, 1, -16)
+        StatusLbl.Position = UDim2.new(0, 23, 1, -17)
         StatusLbl.BackgroundTransparency = 1
         StatusLbl.Text = "off"
         StatusLbl.TextColor3 = P.DOT_OFF
@@ -987,8 +989,8 @@ local function startMain(profileName, profileData)
                 tween(Btn, { BackgroundColor3 = P.BTN_BG_ON }, 0.22, Enum.EasingStyle.Back)
                 if bg then
                     bg.Color = ColorSequence.new({
-                        ColorSequenceKeypoint.new(0.0, Color3.fromRGB(255, 250, 220)),
-                        ColorSequenceKeypoint.new(1.0, Color3.fromRGB(255, 240, 190)),
+                        ColorSequenceKeypoint.new(0.0, Color3.fromRGB(255, 250, 250)),
+                        ColorSequenceKeypoint.new(1.0, Color3.fromRGB(255, 235, 242)),
                     })
                 end
                 tween(Lbl, { TextColor3 = P.BTN_TEXT_ON }, 0.22)
@@ -1029,7 +1031,7 @@ local function startMain(profileName, profileData)
     local function newSettingsPage(titleText)
         local p = newPage()
         local BackBtn = Instance.new("TextButton")
-        BackBtn.Size = UDim2.new(0, 82, 0, 24)
+        BackBtn.Size = UDim2.new(0, 86, 0, 26)
         BackBtn.BackgroundColor3 = P.BTN_BG
         BackBtn.Text = "← back"
         BackBtn.TextColor3 = P.BTN_TEXT
@@ -1037,7 +1039,7 @@ local function startMain(profileName, profileData)
         BackBtn.TextSize = 10
         BackBtn.AutoButtonColor = false
         BackBtn.Parent = p
-        corner(BackBtn, 12)
+        corner(BackBtn, 13)
         stroke(BackBtn, P.STROKE_SOFT, 1)
         BackBtn.MouseButton1Click:Connect(function()
             pop(BackBtn, 4)
@@ -1059,7 +1061,7 @@ local function startMain(profileName, profileData)
     end
 
     local ShaderPresets = {
-        pudding = { label = "🍮 pudding", tint = Color3.fromRGB(255, 250, 230), atmo = Color3.fromRGB(255, 245, 220), decay = Color3.fromRGB(255, 235, 200), bloom = Color3.fromRGB(255, 240, 210) },
+        pudding = { label = "🍮 pudding", tint = Color3.fromRGB(255, 250, 240), atmo = Color3.fromRGB(255, 245, 235), decay = Color3.fromRGB(255, 235, 220), bloom = Color3.fromRGB(255, 240, 230) },
         sakura  = { label = "🌸 sakura",  tint = Color3.fromRGB(255, 245, 250), atmo = Color3.fromRGB(255, 235, 245), decay = Color3.fromRGB(255, 220, 240), bloom = Color3.fromRGB(255, 220, 240) },
         dreamy  = { label = "🌙 dreamy",  tint = Color3.fromRGB(245, 240, 255), atmo = Color3.fromRGB(235, 230, 255), decay = Color3.fromRGB(220, 215, 250), bloom = Color3.fromRGB(230, 220, 255) },
         pastel  = { label = "🍬 pastel",  tint = Color3.fromRGB(255, 250, 245), atmo = Color3.fromRGB(255, 245, 235), decay = Color3.fromRGB(255, 235, 220), bloom = Color3.fromRGB(255, 235, 225) },
@@ -1079,47 +1081,49 @@ local function startMain(profileName, profileData)
         if not Config.ShaderEnabled then return end
         local preset = ShaderPresets[Config.ShaderPreset] or ShaderPresets.pudding
         local k = Config.ShaderIntensity
+        local perfMul = isMobile and 0.65 or 1
 
         local atmo = Instance.new("Atmosphere")
         atmo:SetAttribute("livyii_shader", true)
-        atmo.Density      = 0.10 + 0.15 * k
-        atmo.Offset       = 0.05 + 0.15 * k
-        atmo.Color        = preset.atmo
-        atmo.Decay        = preset.decay
-        atmo.Glare        = 0.55 + 0.40 * k
-        atmo.Haze         = 0.02 + 0.10 * k
-        atmo.Parent       = Lighting
+        atmo.Density = (0.08 + 0.10 * k) * perfMul
+        atmo.Offset  = 0.10
+        atmo.Color   = preset.atmo
+        atmo.Decay   = preset.decay
+        atmo.Glare   = (0.10 + 0.15 * k) * perfMul
+        atmo.Haze    = (0.05 + 0.08 * k) * perfMul
+        atmo.Parent  = Lighting
 
         local cc = Instance.new("ColorCorrectionEffect")
         cc:SetAttribute("livyii_shader", true)
-        cc.Brightness     = 0.08 + 0.12 * k
-        cc.Contrast       = 0.15 + 0.15 * k
-        cc.Saturation     = 0.35 + 0.35 * k
-        cc.TintColor      = preset.tint
-        cc.Parent         = Lighting
+        cc.Brightness = 0.02 + 0.03 * k
+        cc.Contrast   = 0.10 + 0.10 * k
+        cc.Saturation = 0.15 + 0.15 * k
+        cc.TintColor  = preset.tint
+        cc.Parent     = Lighting
 
         local bloom = Instance.new("BloomEffect")
         bloom:SetAttribute("livyii_shader", true)
-        bloom.Intensity   = 1.4 + 1.2 * k
-        bloom.Size        = 14 + 12 * k
-        bloom.Threshold   = 0.55 - 0.15 * k
-        bloom.Parent      = Lighting
+        bloom.Intensity = (0.40 + 0.30 * k) * perfMul
+        bloom.Size      = 8 + 6 * k
+        bloom.Threshold = 1.30 + 0.20 * k
+        bloom.Parent    = Lighting
 
         local shine = Instance.new("BloomEffect")
         shine.Name          = "livyii_gloss_shine"
         shine:SetAttribute("livyii_shader", true)
-        shine.Intensity     = 0.6 + 0.6 * k
-        shine.Size          = 6 + 5 * k
-        shine.Threshold     = 2.0 - 0.4 * k
+        shine.Intensity     = (0.25 + 0.20 * k) * perfMul
+        shine.Size          = 4 + 3 * k
+        shine.Threshold     = 2.2 + 0.3 * k
         shine.Parent        = Lighting
 
         local rays = Instance.new("SunRaysEffect")
         rays:SetAttribute("livyii_shader", true)
-        rays.Intensity    = 0.15 + 0.15 * k
-        rays.Spread       = 0.9 + 0.1 * k
-        rays.Parent       = Lighting
+        rays.Intensity = (0.05 + 0.08 * k) * perfMul
+        rays.Spread    = 0.9
+        rays.Parent    = Lighting
     end
 
+    -- Hitbox management
     local hitboxHighlights = {}
     local function applyHitboxTo(plr)
         local char = plr.Character
@@ -1154,8 +1158,101 @@ local function startMain(profileName, profileData)
         end
     end
 
+    -- AIM ASSIST
+    local aimHighlight = Instance.new("Highlight")
+    aimHighlight.Name = "livyii_aim_hl"
+    aimHighlight.FillColor = Config.AimColor
+    aimHighlight.OutlineColor = Config.AimColor
+    aimHighlight.FillTransparency = 0.65
+    aimHighlight.OutlineTransparency = 0.2
+    aimHighlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+    aimHighlight.Enabled = false
+    aimHighlight.Parent = CoreGui
+
+    local aimBillboard = Instance.new("BillboardGui")
+    aimBillboard.Name = "livyii_aim_tag"
+    aimBillboard.Size = UDim2.new(0, 120, 0, 30)
+    aimBillboard.StudsOffset = Vector3.new(0, 3, 0)
+    aimBillboard.AlwaysOnTop = true
+    aimBillboard.MaxDistance = 500
+    aimBillboard.Enabled = false
+    aimBillboard.Parent = CoreGui
+
+    local aimTagBg = Instance.new("Frame")
+    aimTagBg.Size = UDim2.new(1, 0, 1, 0)
+    aimTagBg.BackgroundColor3 = Config.AimColor
+    aimTagBg.BackgroundTransparency = 0.15
+    aimTagBg.BorderSizePixel = 0
+    aimTagBg.Parent = aimBillboard
+    corner(aimTagBg, 12)
+    stroke(aimTagBg, Color3.fromRGB(255, 255, 255), 1.5)
+
+    local aimTagGrad = Instance.new("UIGradient", aimTagBg)
+    aimTagGrad.Color = ColorSequence.new(Config.AimColor, Color3.fromRGB(255, 220, 235))
+    aimTagGrad.Rotation = 90
+
+    local aimTagLbl = Instance.new("TextLabel")
+    aimTagLbl.Size = UDim2.new(1, -8, 1, 0)
+    aimTagLbl.Position = UDim2.new(0, 4, 0, 0)
+    aimTagLbl.BackgroundTransparency = 1
+    aimTagLbl.Text = "🎯"
+    aimTagLbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+    aimTagLbl.Font = Enum.Font.GothamBold
+    aimTagLbl.TextSize = 11
+    aimTagLbl.Parent = aimTagBg
+
+    local aimFOVFrame = Instance.new("Frame")
+    aimFOVFrame.Name = "livyii_aim_fov"
+    aimFOVFrame.BackgroundTransparency = 1
+    aimFOVFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+    aimFOVFrame.Size = UDim2.new(0, 300, 0, 300)
+    aimFOVFrame.Visible = false
+    aimFOVFrame.ZIndex = 50
+    aimFOVFrame.Parent = ScreenGui
+    corner(aimFOVFrame, 5000)
+
+    local aimFOVStroke = Instance.new("UIStroke", aimFOVFrame)
+    aimFOVStroke.Color = Config.AimColor
+    aimFOVStroke.Thickness = 1.5
+    aimFOVStroke.Transparency = 0.35
+    aimFOVStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+
+    local aimFOVGlow = Instance.new("UIStroke", aimFOVFrame)
+    aimFOVGlow.Color = Color3.fromRGB(255, 220, 235)
+    aimFOVGlow.Thickness = 5
+    aimFOVGlow.Transparency = 0.85
+    aimFOVGlow.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+
+    local partMap = { Head = "Head", Torso = "UpperTorso", Root = "HumanoidRootPart" }
+    local function getCursorPos()
+        if isMobile then
+            local vp = Camera.ViewportSize
+            return Vector2.new(vp.X / 2, vp.Y / 2)
+        end
+        return Vector2.new(Mouse.X, Mouse.Y)
+    end
+
+    function GetClosestPlayer(fov)
+        local closest, bestDist = nil, math.huge
+        local cursor = getCursorPos()
+        for _, plr in ipairs(Players:GetPlayers()) do
+            if plr ~= LocalPlayer and plr.Character then
+                local hrp = plr.Character:FindFirstChild("HumanoidRootPart")
+                local hum = plr.Character:FindFirstChildOfClass("Humanoid")
+                if hrp and hum and hum.Health > 0 then
+                    local sp, onScreen = Camera:WorldToViewportPoint(hrp.Position)
+                    if onScreen then
+                        local d = (Vector2.new(sp.X, sp.Y) - cursor).Magnitude
+                        if d <= fov and d < bestDist then bestDist = d; closest = plr end
+                    end
+                end
+            end
+        end
+        return closest
+    end
+
     local LockedTarget = nil
-    local LockBtn, HitboxBtn, ToggleBtn = nil, nil, nil
+    local LockBtn, HitboxBtn, AimBtn, ToggleBtn = nil, nil, nil, nil
     local GuiVisible = true
 
     local function updateLockVisuals()
@@ -1204,6 +1301,29 @@ local function startMain(profileName, profileData)
         end
     end
 
+    local function updateAimVisuals()
+        if not AimBtn then return end
+        local icon = AimBtn:FindFirstChild("Icon")
+        local lbl  = AimBtn:FindFirstChild("NameLbl")
+        local grad = AimBtn:FindFirstChildOfClass("UIGradient")
+        if not icon or not lbl then return end
+        if Config.AimAssist then
+            tween(AimBtn, { BackgroundColor3 = P.AIM_ON_A }, 0.22, Enum.EasingStyle.Back)
+            if grad then grad.Color = ColorSequence.new(P.AIM_ON_A, P.AIM_ON_B) end
+            icon.Text = "✨"
+            tween(icon, { TextColor3 = Color3.fromRGB(255, 255, 255) }, 0.22)
+            lbl.Text = "tracking"
+            lbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+        else
+            tween(AimBtn, { BackgroundColor3 = P.AIM_IDLE_A }, 0.22)
+            if grad then grad.Color = ColorSequence.new(P.AIM_IDLE_A, P.AIM_IDLE_B) end
+            icon.Text = "✨"
+            tween(icon, { TextColor3 = P.BTN_TEXT_ON }, 0.22)
+            lbl.Text = "tap to aim"
+            lbl.TextColor3 = P.BTN_TEXT
+        end
+    end
+
     local function removeLockButton()
         if LockBtn then
             local b = LockBtn; LockBtn = nil
@@ -1220,32 +1340,12 @@ local function startMain(profileName, profileData)
         end
         Config.HitboxActive = false
     end
-
-    local partMap = { Head = "Head", Torso = "UpperTorso", Root = "HumanoidRootPart" }
-    local function getCursorPos()
-        if UserInputService.TouchEnabled and not UserInputService.MouseEnabled then
-            local vp = Camera.ViewportSize
-            return Vector2.new(vp.X / 2, vp.Y / 2)
+    local function removeAimButton()
+        if AimBtn then
+            local b = AimBtn; AimBtn = nil
+            tween(b, { Size = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 1 }, 0.22)
+            task.wait(0.24); b:Destroy()
         end
-        return Vector2.new(Mouse.X, Mouse.Y)
-    end
-    function GetClosestPlayer(fov)
-        local closest, bestDist = nil, math.huge
-        local cursor = getCursorPos()
-        for _, plr in ipairs(Players:GetPlayers()) do
-            if plr ~= LocalPlayer and plr.Character then
-                local hrp = plr.Character:FindFirstChild("HumanoidRootPart")
-                local hum = plr.Character:FindFirstChildOfClass("Humanoid")
-                if hrp and hum and hum.Health > 0 then
-                    local sp, onScreen = Camera:WorldToViewportPoint(hrp.Position)
-                    if onScreen then
-                        local d = (Vector2.new(sp.X, sp.Y) - cursor).Magnitude
-                        if d <= fov and d < bestDist then bestDist = d; closest = plr end
-                    end
-                end
-            end
-        end
-        return closest
     end
 
     local function createLockButton()
@@ -1253,7 +1353,7 @@ local function startMain(profileName, profileData)
         local b = Instance.new("TextButton")
         b.Name = "LockBtn"
         b.Size = UDim2.new(0, 54, 0, 54)
-        b.Position = UDim2.new(0, 20, 0.5, -27)
+        b.Position = UDim2.new(0, 20, 0.5, -85)
         b.BackgroundColor3 = P.LOCK_IDLE_A
         b.Text = ""
         b.AutoButtonColor = false
@@ -1332,7 +1432,7 @@ local function startMain(profileName, profileData)
         local b = Instance.new("TextButton")
         b.Name = "HitboxBtn"
         b.Size = UDim2.new(0, 54, 0, 54)
-        b.Position = UDim2.new(0, 20, 0.5, 34)
+        b.Position = UDim2.new(0, 20, 0.5, -20)
         b.BackgroundColor3 = P.HB_IDLE_A
         b.Text = ""
         b.AutoButtonColor = false
@@ -1391,16 +1491,80 @@ local function startMain(profileName, profileData)
         end)
     end
 
+    local function createAimButton()
+        if AimBtn then return end
+        local b = Instance.new("TextButton")
+        b.Name = "AimBtn"
+        b.Size = UDim2.new(0, 54, 0, 54)
+        b.Position = UDim2.new(0, 20, 0.5, 45)
+        b.BackgroundColor3 = P.AIM_IDLE_A
+        b.Text = ""
+        b.AutoButtonColor = false
+        b.Active = true
+        b.Parent = ScreenGui
+        corner(b, 27); stroke(b, P.STROKE_SOFT, 1.5)
+        local g = Instance.new("UIGradient", b)
+        g.Color = ColorSequence.new(P.AIM_IDLE_A, P.AIM_IDLE_B); g.Rotation = 90
+
+        local icon = Instance.new("TextLabel")
+        icon.Name = "Icon"; icon.Size = UDim2.new(1, 0, 0.6, 0)
+        icon.Position = UDim2.new(0, 0, 0.05, 0); icon.BackgroundTransparency = 1
+        icon.Text = "✨"; icon.TextColor3 = P.BTN_TEXT_ON
+        icon.Font = Enum.Font.GothamBold; icon.TextSize = 18; icon.Parent = b
+
+        local nameLbl = Instance.new("TextLabel")
+        nameLbl.Name = "NameLbl"; nameLbl.Size = UDim2.new(1, -6, 0, 14)
+        nameLbl.Position = UDim2.new(0, 3, 1, -17); nameLbl.BackgroundTransparency = 1
+        nameLbl.Text = "tap to aim"; nameLbl.TextColor3 = P.BTN_TEXT
+        nameLbl.Font = Enum.Font.GothamBold; nameLbl.TextSize = 8
+        nameLbl.TextTruncate = Enum.TextTruncate.AtEnd; nameLbl.Parent = b
+
+        AimBtn = b
+        b.Size = UDim2.new(0, 0, 0, 0)
+        tween(b, { Size = UDim2.new(0, 54, 0, 54) }, 0.35, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+
+        local draggingB, dragStartB, startPosB, moved, activeInput = false, nil, nil, false, nil
+        b.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                draggingB = true; moved = false; activeInput = input
+                dragStartB = input.Position; startPosB = b.Position
+                tween(b, { Size = UDim2.new(0, 48, 0, 48) }, 0.1)
+            end
+        end)
+        UserInputService.InputChanged:Connect(function(input)
+            if not draggingB or input ~= activeInput then return end
+            if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+                local dx = input.Position.X - dragStartB.X
+                local dy = input.Position.Y - dragStartB.Y
+                if math.abs(dx) > 6 or math.abs(dy) > 6 then moved = true end
+                if moved then
+                    b.Position = UDim2.new(startPosB.X.Scale, startPosB.X.Offset + dx, startPosB.Y.Scale, startPosB.Y.Offset + dy)
+                end
+            end
+        end)
+        UserInputService.InputEnded:Connect(function(input)
+            if not draggingB or input ~= activeInput then return end
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                tween(b, { Size = UDim2.new(0, 54, 0, 54) }, 0.18, Enum.EasingStyle.Back)
+                if not moved then
+                    Config.AimAssist = not Config.AimAssist
+                    updateAimVisuals()
+                end
+                draggingB = false; activeInput = nil
+            end
+        end)
+    end
+
     local function toggleGuiVisibility()
         GuiVisible = not GuiVisible
         local targetVisible = GuiVisible
         if targetVisible then
             Main.Visible = true
             Main.BackgroundTransparency = 1
-            Main.Size = UDim2.new(0, 215, 0, 295)
-            tween(Main, { BackgroundTransparency = 0, Size = UDim2.new(0, 235, 0, 295) }, 0.28, Enum.EasingStyle.Back)
+            Main.Size = UDim2.new(0, 225, 0, 305)
+            tween(Main, { BackgroundTransparency = 0, Size = UDim2.new(0, 245, 0, 305) }, 0.28, Enum.EasingStyle.Back)
         else
-            tween(Main, { BackgroundTransparency = 1, Size = UDim2.new(0, 215, 0, 295) }, 0.2)
+            tween(Main, { BackgroundTransparency = 1, Size = UDim2.new(0, 225, 0, 305) }, 0.2)
             task.wait(0.21); Main.Visible = false
         end
         if ToggleBtn then
@@ -1419,15 +1583,15 @@ local function startMain(profileName, profileData)
         if ToggleBtn then return end
         local b = Instance.new("TextButton")
         b.Name = "ToggleBtn"
-        b.Size = UDim2.new(0, 44, 0, 44)
-        b.Position = UDim2.new(1, -58, 0, 20)
+        b.Size = UDim2.new(0, 46, 0, 46)
+        b.Position = UDim2.new(1, -60, 0, 20)
         b.BackgroundColor3 = P.TOGGLE_A
         b.Text = ""
         b.AutoButtonColor = false
         b.Active = true
         b.ZIndex = 100
         b.Parent = ScreenGui
-        corner(b, 22); stroke(b, P.STROKE_SOFT, 1.5)
+        corner(b, 23); stroke(b, P.STROKE_SOFT, 1.5)
         local g = Instance.new("UIGradient", b)
         g.Color = ColorSequence.new(P.TOGGLE_A, P.TOGGLE_B); g.Rotation = 45
 
@@ -1443,14 +1607,14 @@ local function startMain(profileName, profileData)
 
         ToggleBtn = b
         b.Size = UDim2.new(0, 0, 0, 0)
-        tween(b, { Size = UDim2.new(0, 44, 0, 44) }, 0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+        tween(b, { Size = UDim2.new(0, 46, 0, 46) }, 0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
 
         local draggingB, dragStartB, startPosB, moved, activeInput = false, nil, nil, false, nil
         b.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                 draggingB = true; moved = false; activeInput = input
                 dragStartB = input.Position; startPosB = b.Position
-                tween(b, { Size = UDim2.new(0, 39, 0, 39) }, 0.1)
+                tween(b, { Size = UDim2.new(0, 41, 0, 41) }, 0.1)
             end
         end)
         UserInputService.InputChanged:Connect(function(input)
@@ -1467,7 +1631,7 @@ local function startMain(profileName, profileData)
         UserInputService.InputEnded:Connect(function(input)
             if not draggingB or input ~= activeInput then return end
             if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-                tween(b, { Size = UDim2.new(0, 44, 0, 44) }, 0.18, Enum.EasingStyle.Back)
+                tween(b, { Size = UDim2.new(0, 46, 0, 46) }, 0.18, Enum.EasingStyle.Back)
                 if not moved then toggleGuiVisibility() end
                 draggingB = false; activeInput = nil
             end
@@ -1478,16 +1642,17 @@ local function startMain(profileName, profileData)
     MainPage.Visible = true
 
     section(MainPage, "🎯  combat")
-    local rowCombat1 = row(MainPage, 44)
-    local rowCombat2 = row(MainPage, 44)
+    local rowCombat1 = row(MainPage, 46)
+    local rowCombat2 = row(MainPage, 46)
     section(MainPage, "🎨  visual")
-    local rowVisual1 = row(MainPage, 44)
-    local rowVisual2 = row(MainPage, 44)
+    local rowVisual1 = row(MainPage, 46)
+    local rowVisual2 = row(MainPage, 46)
     section(MainPage, "🛡️  utility")
-    local rowUtil1 = row(MainPage, 44)
+    local rowUtil1 = row(MainPage, 46)
 
     local CamlockPage  = newSettingsPage("🎯 camlock settings")
     local HitboxPage   = newSettingsPage("🎈 hitbox settings")
+    local AimPage      = newSettingsPage("✨ pro aim settings")
     local FogPage      = newSettingsPage("🌫️ fog settings")
     local SkyPage      = newSettingsPage("🌈 sky settings")
     local ShaderPage   = newSettingsPage("✨ light shaders")
@@ -1509,11 +1674,19 @@ local function startMain(profileName, profileData)
         end,
         function() showPage(HitboxPage) end)
 
+    makeTile(rowCombat2, "Pro Aim", "✨",
+        function(v)
+            Config.AimAssist = v
+            if v then createAimButton() else removeAimButton() end
+            updateAimVisuals()
+        end,
+        function() showPage(AimPage) end, true)
+
     makeTile(rowVisual1, "Fog", "🌫️",
         function(v)
             Config.FogEnabled = v
             if v then
-                Lighting.FogColor = Color3.fromRGB(255, 245, 210)
+                Lighting.FogColor = Color3.fromRGB(255, 245, 220)
                 Lighting.FogEnd = Config.FogEnd
                 Lighting.FogStart = 0
             else
@@ -1534,14 +1707,14 @@ local function startMain(profileName, profileData)
                 atmo:SetAttribute("livyii_sky", true)
                 atmo.Density = 0.5 * Config.SkyIntensity
                 atmo.Offset = 0.3
-                atmo.Color = Color3.fromRGB(255, 240, 190)
-                atmo.Decay = Color3.fromRGB(255, 225, 160)
+                atmo.Color = Color3.fromRGB(255, 240, 210)
+                atmo.Decay = Color3.fromRGB(255, 225, 190)
                 atmo.Glare = 0; atmo.Haze = 0.4
                 atmo.Parent = Lighting
                 local cc = Instance.new("ColorCorrectionEffect")
                 cc:SetAttribute("livyii_sky", true)
                 cc.Brightness = 0.05; cc.Contrast = -0.1; cc.Saturation = 0.15
-                cc.TintColor = Color3.fromRGB(255, 245, 210)
+                cc.TintColor = Color3.fromRGB(255, 245, 240)
                 cc.Parent = Lighting
                 local bloom = Instance.new("BloomEffect")
                 bloom:SetAttribute("livyii_sky", true)
@@ -1602,6 +1775,32 @@ local function startMain(profileName, profileData)
                 if h and h.Parent then h.FillColor = c; h.OutlineColor = c end
             end
         end
+    end)
+
+    local aimInfo = Instance.new("TextLabel")
+    aimInfo.Size = UDim2.new(1, 0, 0, 42)
+    aimInfo.BackgroundTransparency = 1
+    aimInfo.Text = "highlights the closest player with a soft pink glow and shows a name tag above them ✨"
+    aimInfo.TextColor3 = P.BTN_TEXT
+    aimInfo.Font = Enum.Font.GothamMedium
+    aimInfo.TextSize = 9
+    aimInfo.TextWrapped = true
+    aimInfo.TextXAlignment = Enum.TextXAlignment.Left
+    aimInfo.TextYAlignment = Enum.TextYAlignment.Top
+    aimInfo.Parent = AimPage
+
+    section(AimPage, "🎯  range")
+    makeSlider(AimPage, "aim fov", 50, 800, Config.AimFOV, " px", 0,
+        function(v) Config.AimFOV = v end)
+
+    section(AimPage, "🎨  visuals")
+    makeColorPicker(AimPage, "aim color", Config.AimColor, function(c)
+        Config.AimColor = c
+        aimHighlight.FillColor = c
+        aimHighlight.OutlineColor = c
+        aimTagBg.BackgroundColor3 = c
+        aimFOVStroke.Color = c
+        aimTagGrad.Color = ColorSequence.new(c, Color3.fromRGB(255, 220, 235))
     end)
 
     makeSlider(FogPage, "fog end", 50, 2000, Config.FogEnd, " studs", 0,
@@ -1791,7 +1990,7 @@ local function startMain(profileName, profileData)
         Footer.Visible = not minimized
         TitleFix.Visible = not minimized
         Main:TweenSize(
-            minimized and UDim2.new(0, 235, 0, 36) or UDim2.new(0, 235, 0, 295),
+            minimized and UDim2.new(0, 245, 0, 38) or UDim2.new(0, 245, 0, 305),
             Enum.EasingDirection.Out, Enum.EasingStyle.Back, 0.32, true
         )
     end)
@@ -1813,6 +2012,50 @@ local function startMain(profileName, profileData)
         local goal = CFrame.new(Camera.CFrame.Position, lookAt)
         local alpha = 1 - math.pow(1 - Config.CamlockSmoothness, dt * 60)
         Camera.CFrame = Camera.CFrame:Lerp(goal, alpha)
+    end)
+
+    RunService.RenderStepped:Connect(function()
+        if not Config.AimAssist then
+            aimHighlight.Enabled = false
+            aimBillboard.Enabled = false
+            aimFOVFrame.Visible = false
+            return
+        end
+
+        if Config.AimFOVRing then
+            local cursor = getCursorPos()
+            aimFOVFrame.Visible = true
+            aimFOVFrame.Size = UDim2.new(0, Config.AimFOV * 2, 0, Config.AimFOV * 2)
+            aimFOVFrame.Position = UDim2.new(0, cursor.X, 0, cursor.Y)
+        else
+            aimFOVFrame.Visible = false
+        end
+
+        local target = GetClosestPlayer(Config.AimFOV)
+        if target and target.Character then
+            local head = target.Character:FindFirstChild("Head")
+                       or target.Character:FindFirstChild("HumanoidRootPart")
+            if head then
+                if Config.AimHighlight then
+                    aimHighlight.Adornee = target.Character
+                    aimHighlight.FillColor = Config.AimColor
+                    aimHighlight.OutlineColor = Config.AimColor
+                    aimHighlight.Enabled = true
+                else
+                    aimHighlight.Enabled = false
+                end
+                if Config.AimNameTag then
+                    aimBillboard.Adornee = head
+                    aimBillboard.Enabled = true
+                    aimTagLbl.Text = "🎯 " .. (target.DisplayName or target.Name)
+                else
+                    aimBillboard.Enabled = false
+                end
+            end
+        else
+            aimHighlight.Enabled = false
+            aimBillboard.Enabled = false
+        end
     end)
 
     Players.PlayerAdded:Connect(function(plr)
@@ -1837,7 +2080,6 @@ local function startMain(profileName, profileData)
     print("🍮 livyii.main loaded 🍮✨")
 end
 
--- KEYSYSTEM
 local function showKeySystem()
     local KeyGui = Instance.new("ScreenGui")
     KeyGui.Name = "livyii.key"
@@ -1856,32 +2098,32 @@ local function showKeySystem()
     Frame.BorderSizePixel = 0
     Frame.Active = true
     Frame.Parent = KeyGui
-    corner(Frame, 20)
+    corner(Frame, 22)
     stroke(Frame, P.STROKE_SOFT, 1.5)
 
     do
         local sh = Instance.new("Frame")
         sh.Size = UDim2.new(1, 0, 1, 0)
-        sh.Position = UDim2.new(0, 0, 0, 4)
+        sh.Position = UDim2.new(0, 0, 0, 5)
         sh.BackgroundColor3 = P.SHADOW
         sh.BackgroundTransparency = 0.7
         sh.BorderSizePixel = 0
         sh.ZIndex = -1
         sh.Parent = Frame
-        corner(sh, 20)
+        corner(sh, 22)
     end
 
     do
         local g = Instance.new("UIGradient", Frame)
         g.Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0.0, Color3.fromRGB(255, 253, 240)),
-            ColorSequenceKeypoint.new(1.0, Color3.fromRGB(255, 248, 220)),
+            ColorSequenceKeypoint.new(0.0, Color3.fromRGB(255, 253, 250)),
+            ColorSequenceKeypoint.new(1.0, Color3.fromRGB(255, 240, 245)),
         })
         g.Rotation = 90
     end
 
     local Header = Instance.new("TextLabel")
-    Header.Size = UDim2.new(1, 0, 0, 34)
+    Header.Size = UDim2.new(1, 0, 0, 36)
     Header.BackgroundColor3 = P.HEADER_A
     Header.BorderSizePixel = 0
     Header.Text = "🍮  livyii.main  🍮"
@@ -1889,13 +2131,13 @@ local function showKeySystem()
     Header.Font = Enum.Font.GothamBold
     Header.TextSize = 12
     Header.Parent = Frame
-    corner(Header, 20)
+    corner(Header, 22)
     gradient(Header, P.HEADER_A, P.HEADER_B, 90)
 
     do
         local fix = Instance.new("Frame")
-        fix.Size = UDim2.new(1, 0, 0, 20)
-        fix.Position = UDim2.new(0, 0, 1, -20)
+        fix.Size = UDim2.new(1, 0, 0, 22)
+        fix.Position = UDim2.new(0, 0, 1, -22)
         fix.BackgroundColor3 = P.HEADER_B
         fix.BorderSizePixel = 0
         fix.Parent = Header
@@ -1920,8 +2162,8 @@ local function showKeySystem()
     end)
 
     local CloseB = Instance.new("TextButton")
-    CloseB.Size = UDim2.new(0, 24, 0, 24)
-    CloseB.Position = UDim2.new(1, -30, 0, 5)
+    CloseB.Size = UDim2.new(0, 26, 0, 26)
+    CloseB.Position = UDim2.new(1, -32, 0, 5)
     CloseB.BackgroundColor3 = P.BTN_BG
     CloseB.Text = "✕"
     CloseB.TextColor3 = P.HEADER_TEXT
@@ -1930,15 +2172,13 @@ local function showKeySystem()
     CloseB.AutoButtonColor = false
     CloseB.ZIndex = 10
     CloseB.Parent = Header
-    corner(CloseB, 12)
+    corner(CloseB, 13)
     stroke(CloseB, P.STROKE_SOFT, 1)
-    CloseB.MouseButton1Click:Connect(function()
-        KeyGui:Destroy()
-    end)
+    CloseB.MouseButton1Click:Connect(function() KeyGui:Destroy() end)
 
     local Sub = Instance.new("TextLabel")
     Sub.Size = UDim2.new(1, -30, 0, 18)
-    Sub.Position = UDim2.new(0, 15, 0, 46)
+    Sub.Position = UDim2.new(0, 15, 0, 48)
     Sub.BackgroundTransparency = 1
     Sub.Text = "enter this week's key 🔑"
     Sub.TextColor3 = P.BTN_TEXT
@@ -1948,24 +2188,24 @@ local function showKeySystem()
     Sub.Parent = Frame
 
     local Box = Instance.new("TextBox")
-    Box.Size = UDim2.new(1, -30, 0, 32)
-    Box.Position = UDim2.new(0, 15, 0, 68)
+    Box.Size = UDim2.new(1, -30, 0, 34)
+    Box.Position = UDim2.new(0, 15, 0, 70)
     Box.BackgroundColor3 = P.BTN_BG
     Box.Text = ""
     Box.PlaceholderText = "type key here..."
-    Box.PlaceholderColor3 = Color3.fromRGB(200, 180, 150)
+    Box.PlaceholderColor3 = Color3.fromRGB(220, 195, 205)
     Box.TextColor3 = P.BTN_TEXT_ON
     Box.Font = Enum.Font.GothamMedium
     Box.TextSize = 12
     Box.TextXAlignment = Enum.TextXAlignment.Center
     Box.ClearTextOnFocus = false
     Box.Parent = Frame
-    corner(Box, 12)
+    corner(Box, 13)
     stroke(Box, P.STROKE_SOFT, 1)
 
     local Submit = Instance.new("TextButton")
     Submit.Size = UDim2.new(1, -30, 0, 34)
-    Submit.Position = UDim2.new(0, 15, 0, 110)
+    Submit.Position = UDim2.new(0, 15, 0, 112)
     Submit.BackgroundColor3 = P.BTN_BG_ON
     Submit.Text = "🍮  unlock  🍮"
     Submit.TextColor3 = P.BTN_TEXT_ON
@@ -1973,7 +2213,7 @@ local function showKeySystem()
     Submit.TextSize = 12
     Submit.AutoButtonColor = false
     Submit.Parent = Frame
-    corner(Submit, 12)
+    corner(Submit, 13)
     stroke(Submit, P.STROKE_SOFT, 1)
 
     local Status = Instance.new("TextLabel")
@@ -2043,7 +2283,6 @@ end
 
 -- BOOT
 local profileName, profileData = getLocalProfile()
-
 if profileName then
     showWelcomeToast(profileName, profileData)
     task.wait(1.2)
