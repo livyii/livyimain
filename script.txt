@@ -1,1 +1,1292 @@
-ruruaaiko 
+-- livyii.main - Sidebar Makeover
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UIS = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local Lighting = game:GetService("Lighting")
+local CoreGui = game:GetService("CoreGui")
+
+local LP = Players.LocalPlayer
+local Cam = workspace.CurrentCamera
+local Mouse = LP:GetMouse()
+
+-- Profiles
+local PROFILES = {
+    ["livyiilolly"] = { role = "developer & owner",        emoji = "👑", color = Color3.fromRGB(255, 220, 130), msg = "welcome back, boss!" },
+    ["2lmost"]      = { role = "developer",                emoji = "💻", color = Color3.fromRGB(200, 220, 255), msg = "hii rave!" },
+    ["narvstar"]    = { role = "cutesy community manager", emoji = "🌸", color = Color3.fromRGB(255, 200, 220), msg = "hii narv!" },
+    ["ttwitme"]     = { role = "yuri",                     emoji = "💜", color = Color3.fromRGB(220, 180, 255), msg = "hii yuri!" },
+}
+local function getProfile()
+    local n = string.lower(LP.Name)
+    for u, d in pairs(PROFILES) do if string.lower(u) == n then return u, d end end
+end
+
+-- Weekly keys
+local KEYS = {"pompom","livyii","imjustlit","bestscript","bloxycola","supernatural"}
+local function getKey()
+    local w = math.floor(os.time() / 604800)
+    return KEYS[(w % #KEYS) + 1]
+end
+
+local Platform = { isMobile = false }
+local _keyPassed = false
+
+local Sizes = {
+    pc = { W=340, H=340, headerH=44, sidebarW=52, tabSize=38, btnSize=26,
+           floatBtn=56, toggleBtn=48, titleSize=13, tileFontSize=11,
+           statusFontSize=9, backW=90, backH=28 },
+    mobile = { W=360, H=380, headerH=48, sidebarW=60, tabSize=46, btnSize=30,
+               floatBtn=64, toggleBtn=54, titleSize=14, tileFontSize=12,
+               statusFontSize=10, backW=100, backH=32 },
+}
+local function sz() return Platform.isMobile and Sizes.mobile or Sizes.pc end
+
+local Config = {
+    Camlock=false, CamlockSmoothness=0.15, CamlockFOV=400, CamlockYOffset=0, CamlockPart="Head",
+    HitboxExpander=false, HitboxSize=5, HitboxTransparency=0.6, HitboxColor=Color3.fromRGB(255,200,120), HitboxActive=false,
+    AimAssist=false, AimFOV=300, AimHighlight=true, AimNameTag=true, AimFOVRing=true, AimColor=Color3.fromRGB(255,200,140),
+    FogEnabled=false, FogEnd=500,
+    SkyEnabled=false, SkyIntensity=0.5,
+    ShaderEnabled=false, ShaderPreset="pudding", ShaderIntensity=0.5,
+    Antilock=false,
+}
+
+-- Brown + yellow + pink palette
+local P = {
+    BG=Color3.fromRGB(255,250,240), BG_SOFT=Color3.fromRGB(255,253,246),
+    HEADER_A=Color3.fromRGB(255,245,195), HEADER_B=Color3.fromRGB(255,225,190),
+    HEADER_TEXT=Color3.fromRGB(140,75,70),
+    SIDEBAR=Color3.fromRGB(255,245,230), CONTENT=Color3.fromRGB(255,253,248),
+    BTN_BG=Color3.fromRGB(255,252,244), BTN_BG_ON=Color3.fromRGB(255,232,225),
+    BTN_GRAD_A=Color3.fromRGB(255,255,250), BTN_GRAD_B=Color3.fromRGB(255,245,235),
+    BTN_TEXT=Color3.fromRGB(150,95,75), BTN_TEXT_ON=Color3.fromRGB(200,100,120),
+    STROKE=Color3.fromRGB(255,220,180), STROKE_SOFT=Color3.fromRGB(255,235,205),
+    TRACK=Color3.fromRGB(255,235,220), FILL_A=Color3.fromRGB(255,220,180), FILL_B=Color3.fromRGB(255,185,190),
+    DOT_OFF=Color3.fromRGB(255,225,200), DOT_ON=Color3.fromRGB(255,155,180),
+    FOOTER=Color3.fromRGB(200,150,130), GEAR_BG=Color3.fromRGB(255,240,235), GEAR_TEXT=Color3.fromRGB(255,130,160),
+    LOCK_IDLE_A=Color3.fromRGB(255,245,230), LOCK_IDLE_B=Color3.fromRGB(255,235,220),
+    LOCK_ON_A=Color3.fromRGB(255,210,215), LOCK_ON_B=Color3.fromRGB(255,165,195),
+    HB_IDLE_A=Color3.fromRGB(255,245,230), HB_IDLE_B=Color3.fromRGB(255,235,220),
+    HB_ON_A=Color3.fromRGB(255,210,215), HB_ON_B=Color3.fromRGB(255,165,195),
+    AIM_IDLE_A=Color3.fromRGB(255,245,230), AIM_IDLE_B=Color3.fromRGB(255,235,220),
+    AIM_ON_A=Color3.fromRGB(255,220,200), AIM_ON_B=Color3.fromRGB(255,175,160),
+    TOGGLE_A=Color3.fromRGB(255,235,200), TOGGLE_B=Color3.fromRGB(255,175,190),
+    SHADOW=Color3.fromRGB(255,200,190), ERROR=Color3.fromRGB(230,110,130), SUCCESS=Color3.fromRGB(160,210,180),
+    PINK=Color3.fromRGB(255,175,195), PINK_SOFT=Color3.fromRGB(255,215,225),
+}
+
+pcall(function()
+    for _, n in ipairs({"livyii.main","livyii.intro","livyii.key","livyii.welcome","livyii.platform"}) do
+        if CoreGui:FindFirstChild(n) then CoreGui[n]:Destroy() end
+    end
+end)
+
+local function tween(o,p,t,s,d) TweenService:Create(o, TweenInfo.new(t or .22, s or Enum.EasingStyle.Quint, d or Enum.EasingDirection.Out), p):Play() end
+local function corner(p,r) local c=Instance.new("UICorner",p); c.CornerRadius=UDim.new(0,r or 16); return c end
+local function stroke(p,c,t) local s=Instance.new("UIStroke",p); s.Color=c or P.STROKE; s.Thickness=t or 1; s.ApplyStrokeMode=Enum.ApplyStrokeMode.Border; return s end
+local function grad(p,a,b,r) local g=Instance.new("UIGradient",p); g.Color=ColorSequence.new(a,b); g.Rotation=r or 90; return g end
+local function pop(o,a) local b=o.Size; tween(o,{Size=UDim2.new(b.X.Scale,b.X.Offset+(a or 6),b.Y.Scale,b.Y.Offset+(a or 6))},.1,Enum.EasingStyle.Back,Enum.EasingDirection.Out); task.wait(.1); tween(o,{Size=b},.18,Enum.EasingStyle.Back,Enum.EasingDirection.Out) end
+local function heartPop(parent, pos, count)
+    count = count or 4
+    for i=1,count do
+        local h=Instance.new("TextLabel")
+        h.Size=UDim2.new(0,20,0,20)
+        h.Position=UDim2.new(pos.X.Scale,pos.X.Offset-10,pos.Y.Scale,pos.Y.Offset-10)
+        h.BackgroundTransparency=1
+        h.Text=({"💕","💖","💗","🌸"})[math.random(4)]
+        h.TextSize=14; h.Font=Enum.Font.GothamBold; h.TextTransparency=0; h.ZIndex=200; h.Parent=parent
+        local a=math.random()*math.pi*2; local d=20+math.random()*16
+        tween(h,{Position=UDim2.new(pos.X.Scale,pos.X.Offset-10+math.cos(a)*d,pos.Y.Scale,pos.Y.Offset-10+math.sin(a)*d),TextTransparency=1,Rotation=math.random(-30,30)},.8,Enum.EasingStyle.Quart,Enum.EasingDirection.Out)
+        task.delay(.85,function() h:Destroy() end)
+    end
+end
+local function getCursor()
+    if Platform.isMobile then local vp=Cam.ViewportSize; return Vector2.new(vp.X/2,vp.Y/2) end
+    return Vector2.new(Mouse.X,Mouse.Y)
+end
+local function parentGui(g)
+    if gethui then g.Parent=gethui()
+    elseif syn and syn.protect_gui then syn.protect_gui(g); g.Parent=CoreGui
+    else g.Parent=CoreGui end
+end
+
+-- Welcome toast
+local function showWelcome(uname, data)
+    local gui=Instance.new("ScreenGui"); gui.Name="livyii.welcome"; gui.ResetOnSpawn=false; gui.IgnoreGuiInset=true; gui.DisplayOrder=900; parentGui(gui)
+    local f=Instance.new("Frame")
+    f.Size=UDim2.new(0,260,0,68); f.Position=UDim2.new(.5,-130,0,-90); f.BackgroundColor3=P.BG; f.BorderSizePixel=0; f.Parent=gui
+    corner(f,22); stroke(f,P.PINK,2.5); grad(f,P.BG_SOFT,Color3.fromRGB(255,240,235),90)
+    local e=Instance.new("TextLabel"); e.Size=UDim2.new(0,44,1,0); e.Position=UDim2.new(0,8,0,0); e.BackgroundTransparency=1; e.Text=data.emoji; e.TextSize=30; e.Font=Enum.Font.GothamBold; e.Parent=f
+    local nl=Instance.new("TextLabel"); nl.Size=UDim2.new(1,-60,0,22); nl.Position=UDim2.new(0,52,0,12); nl.BackgroundTransparency=1; nl.Text=data.msg; nl.TextColor3=P.HEADER_TEXT; nl.Font=Enum.Font.GothamBold; nl.TextSize=13; nl.TextXAlignment=Enum.TextXAlignment.Left; nl.Parent=f
+    local rl=Instance.new("TextLabel"); rl.Size=UDim2.new(1,-60,0,16); rl.Position=UDim2.new(0,52,0,34); rl.BackgroundTransparency=1; rl.Text="💖 "..data.role; rl.TextColor3=P.PINK; rl.Font=Enum.Font.GothamMedium; rl.TextSize=10; rl.TextXAlignment=Enum.TextXAlignment.Left; rl.Parent=f
+    tween(f,{Position=UDim2.new(.5,-130,0,30)},.5,Enum.EasingStyle.Back,Enum.EasingDirection.Out)
+    task.wait(2.5)
+    tween(f,{Position=UDim2.new(.5,-130,0,-90)},.4,Enum.EasingStyle.Back,Enum.EasingDirection.In)
+    task.wait(.45); gui:Destroy()
+end
+
+-- Platform picker
+local function showPlatform(onSelect)
+    local gui=Instance.new("ScreenGui"); gui.Name="livyii.platform"; gui.ResetOnSpawn=false; gui.IgnoreGuiInset=true; gui.DisplayOrder=600; parentGui(gui)
+    local f=Instance.new("Frame")
+    f.Size=UDim2.new(0,320,0,220); f.Position=UDim2.new(.5,-160,.5,-110); f.BackgroundColor3=P.BG; f.BorderSizePixel=0; f.Active=true; f.Parent=gui
+    corner(f,28); stroke(f,P.PINK,2); grad(f,Color3.fromRGB(255,253,245),Color3.fromRGB(255,242,235),90)
+    local h=Instance.new("TextLabel")
+    h.Size=UDim2.new(1,0,0,46); h.BackgroundColor3=P.HEADER_A; h.BorderSizePixel=0
+    h.Text="🎀  choose your device  🎀"; h.TextColor3=P.HEADER_TEXT; h.Font=Enum.Font.GothamBold; h.TextSize=14; h.Parent=f
+    corner(h,28); grad(h,P.HEADER_A,P.HEADER_B,90)
+    local function mkBtn(label, emoji, xPos, onPick)
+        local b=Instance.new("TextButton")
+        b.Size=UDim2.new(0,124,0,100); b.Position=xPos; b.BackgroundColor3=P.BTN_BG; b.Text=""; b.AutoButtonColor=false; b.Parent=f
+        corner(b,22); stroke(b,P.PINK_SOFT,2); grad(b,P.BTN_GRAD_A,P.BTN_GRAD_B,90)
+        local ic=Instance.new("TextLabel"); ic.Size=UDim2.new(1,0,0,52); ic.Position=UDim2.new(0,0,0,8); ic.BackgroundTransparency=1; ic.Text=emoji; ic.TextSize=40; ic.Font=Enum.Font.GothamBold; ic.Parent=b
+        local l=Instance.new("TextLabel"); l.Size=UDim2.new(1,0,0,22); l.Position=UDim2.new(0,0,1,-30); l.BackgroundTransparency=1; l.Text=label; l.TextColor3=P.HEADER_TEXT; l.Font=Enum.Font.GothamBold; l.TextSize=13; l.Parent=b
+        b.MouseButton1Down:Connect(function() tween(b,{BackgroundColor3=P.BTN_BG_ON},.08) end)
+        b.MouseButton1Up:Connect(function() tween(b,{BackgroundColor3=P.BTN_BG},.15,Enum.EasingStyle.Back) end)
+        b.MouseButton1Click:Connect(function() pop(b,8); task.wait(.15); gui:Destroy(); onPick() end)
+    end
+    mkBtn("PC","🖥️",UDim2.new(0,25,0,92),function() onSelect(false) end)
+    mkBtn("Mobile","📱",UDim2.new(1,-149,0,92),function() onSelect(true) end)
+    f.Size=UDim2.new(0,0,0,0)
+    tween(f,{Size=UDim2.new(0,320,0,220)},.4,Enum.EasingStyle.Back,Enum.EasingDirection.Out)
+end
+
+-- Intro
+local function playIntro()
+    local blur=Instance.new("BlurEffect"); blur.Size=0; blur.Parent=Lighting
+    local g=Instance.new("ScreenGui"); g.Name="livyii.intro"; g.ResetOnSpawn=false; g.IgnoreGuiInset=true; g.DisplayOrder=999; parentGui(g)
+    local veil=Instance.new("Frame"); veil.Size=UDim2.new(1,0,1,0); veil.BackgroundColor3=Color3.fromRGB(255,245,235); veil.BackgroundTransparency=1; veil.BorderSizePixel=0; veil.Parent=g
+    grad(veil,Color3.fromRGB(255,248,210),Color3.fromRGB(255,220,225),90)
+    local c=Instance.new("Frame"); c.Size=UDim2.new(0,320,0,150); c.Position=UDim2.new(.5,-160,.5,-75); c.BackgroundTransparency=1; c.Parent=g
+    local t=Instance.new("TextLabel"); t.Size=UDim2.new(1,0,0,60); t.Position=UDim2.new(0,0,0,10); t.BackgroundTransparency=1; t.Text="🍮 livyii.main 🍮"; t.TextColor3=P.HEADER_TEXT; t.Font=Enum.Font.GothamBold; t.TextSize=34; t.TextTransparency=1; t.Parent=c
+    local s=Instance.new("TextLabel"); s.Size=UDim2.new(1,0,0,26); s.Position=UDim2.new(0,0,0,78); s.BackgroundTransparency=1; s.Text="loading"; s.TextColor3=P.HEADER_TEXT; s.Font=Enum.Font.GothamMedium; s.TextSize=14; s.TextTransparency=1; s.Parent=c
+    local d=Instance.new("TextLabel"); d.Size=UDim2.new(1,0,0,20); d.Position=UDim2.new(0,0,0,100); d.BackgroundTransparency=1; d.Text=""; d.TextColor3=P.PINK; d.Font=Enum.Font.GothamBold; d.TextSize=14; d.TextTransparency=1; d.Parent=c
+    tween(blur,{Size=24},.6,Enum.EasingStyle.Quad,Enum.EasingDirection.Out)
+    tween(veil,{BackgroundTransparency=.35},.6)
+    task.wait(.25)
+    t.TextSize=20; tween(t,{TextTransparency=0},.6)
+    TweenService:Create(t,TweenInfo.new(.9,Enum.EasingStyle.Back,Enum.EasingDirection.Out),{TextSize=34}):Play()
+    task.wait(.4)
+    tween(s,{TextTransparency=0},.4); tween(d,{TextTransparency=0},.4)
+    task.spawn(function()
+        local seq={".","..","...","...."}; local i=1
+        while d.Parent do d.Text=seq[i]; i=i+1; if i>#seq then i=1 end; task.wait(.22) end
+    end)
+    task.wait(1.6)
+    s.Text="loaded ✨"; s.TextColor3=P.PINK
+    task.wait(.85)
+    tween(t,{TextTransparency=1},.5); tween(s,{TextTransparency=1},.5); tween(d,{TextTransparency=1},.5)
+    tween(veil,{BackgroundTransparency=1},.6)
+    tween(blur,{Size=0},.6,Enum.EasingStyle.Quad,Enum.EasingDirection.In)
+    task.wait(.7); g:Destroy(); blur:Destroy()
+end
+
+-- Main
+local function startMain(profileName, profileData)
+    if not _keyPassed and not (profileName and profileData) then
+        warn("🍮 livyii.main: no key provided — access denied."); return
+    end
+    playIntro()
+    local S = sz()
+
+    local sg = Instance.new("ScreenGui"); sg.Name="livyii.main"; sg.ResetOnSpawn=false; sg.IgnoreGuiInset=true; sg.ZIndexBehavior=Enum.ZIndexBehavior.Sibling; parentGui(sg)
+
+    local Main = Instance.new("Frame")
+    Main.Size=UDim2.new(0,S.W,0,S.H); Main.Position=UDim2.new(.5,-S.W/2,.5,-S.H/2)
+    Main.BackgroundColor3=P.BG; Main.BorderSizePixel=0; Main.Active=false; Main.Draggable=false; Main.Parent=sg
+    corner(Main,26); stroke(Main,P.PINK_SOFT,2); grad(Main,Color3.fromRGB(255,253,245),Color3.fromRGB(255,242,235),90)
+
+    -- Header
+    local Title = Instance.new("TextLabel")
+    Title.Size=UDim2.new(1,0,0,S.headerH); Title.BackgroundColor3=P.HEADER_A; Title.BorderSizePixel=0
+    Title.Text="      🍮  livyii.main"; Title.TextColor3=P.HEADER_TEXT; Title.Font=Enum.Font.GothamBold
+    Title.TextSize=S.titleSize; Title.TextXAlignment=Enum.TextXAlignment.Left; Title.Parent=Main
+    corner(Title,26); grad(Title,P.HEADER_A,P.HEADER_B,90)
+    local fix=Instance.new("Frame"); fix.Size=UDim2.new(1,0,0,26); fix.Position=UDim2.new(0,0,1,-26); fix.BackgroundColor3=P.HEADER_B; fix.BorderSizePixel=0; fix.Parent=Title
+
+    if profileName and profileData then
+        local badge=Instance.new("TextLabel")
+        badge.Size=UDim2.new(0,100,0,14); badge.Position=UDim2.new(0,S.sidebarW+10,1,-18)
+        badge.BackgroundColor3=profileData.color; badge.BackgroundTransparency=.3
+        badge.Text=profileData.emoji.." "..profileData.role; badge.TextColor3=P.HEADER_TEXT
+        badge.Font=Enum.Font.GothamBold; badge.TextSize=8; badge.ZIndex=5; badge.Parent=Title
+        corner(badge,7)
+    else
+        local pb=Instance.new("TextLabel")
+        pb.Size=UDim2.new(0,76,0,14); pb.Position=UDim2.new(0,S.sidebarW+10,1,-18)
+        pb.BackgroundColor3=Platform.isMobile and Color3.fromRGB(255,200,220) or Color3.fromRGB(220,230,255)
+        pb.BackgroundTransparency=.3
+        pb.Text=Platform.isMobile and "📱 mobile" or "🖥️ pc"; pb.TextColor3=P.HEADER_TEXT
+        pb.Font=Enum.Font.GothamBold; pb.TextSize=8; pb.ZIndex=5; pb.Parent=Title
+        corner(pb,7)
+    end
+
+    -- drag zone
+    local DragZone=Instance.new("Frame"); DragZone.Size=UDim2.new(1,-90,1,0); DragZone.Position=UDim2.new(0,S.sidebarW,0,0)
+    DragZone.BackgroundTransparency=1; DragZone.Active=true; DragZone.Parent=Title
+    local dragging,ds,do_,da=false,nil,nil,nil
+    DragZone.InputBegan:Connect(function(inp)
+        if inp.UserInputType==Enum.UserInputType.MouseButton1 or inp.UserInputType==Enum.UserInputType.Touch then
+            dragging=true; da=inp; ds=inp.Position; do_=Main.Position
+        end
+    end)
+    UIS.InputChanged:Connect(function(inp)
+        if not dragging or inp~=da then return end
+        if inp.UserInputType==Enum.UserInputType.MouseMovement or inp.UserInputType==Enum.UserInputType.Touch then
+            local d=inp.Position-ds
+            Main.Position=UDim2.new(do_.X.Scale,do_.X.Offset+d.X,do_.Y.Scale,do_.Y.Offset+d.Y)
+        end
+    end)
+    UIS.InputEnded:Connect(function(inp)
+        if not dragging or inp~=da then return end
+        if inp.UserInputType==Enum.UserInputType.MouseButton1 or inp.UserInputType==Enum.UserInputType.Touch then dragging=false; da=nil end
+    end)
+
+    local function headerBtn(text,pos)
+        local b=Instance.new("TextButton")
+        b.Size=UDim2.new(0,S.btnSize,0,S.btnSize); b.Position=pos; b.BackgroundColor3=P.BTN_BG; b.Text=text
+        b.TextColor3=P.HEADER_TEXT; b.Font=Enum.Font.GothamBold; b.TextSize=S.btnSize-12; b.AutoButtonColor=false; b.ZIndex=10; b.Parent=Title
+        corner(b,S.btnSize/2); stroke(b,P.PINK_SOFT,1.5)
+        b.MouseButton1Down:Connect(function() tween(b,{BackgroundColor3=P.BTN_BG_ON},.08) end)
+        b.MouseButton1Up:Connect(function() tween(b,{BackgroundColor3=P.BTN_BG},.15,Enum.EasingStyle.Back) end)
+        return b
+    end
+    local MinBtn=headerBtn("—",UDim2.new(1,-S.btnSize*2-10,0,(S.headerH-S.btnSize)/2))
+    local CloseBtn=headerBtn("✕",UDim2.new(1,-S.btnSize-6,0,(S.headerH-S.btnSize)/2))
+
+    -- Sidebar
+    local Sidebar=Instance.new("Frame")
+    Sidebar.Size=UDim2.new(0,S.sidebarW,1,-S.headerH-26); Sidebar.Position=UDim2.new(0,4,0,S.headerH+4)
+    Sidebar.BackgroundColor3=P.SIDEBAR; Sidebar.BorderSizePixel=0; Sidebar.Parent=Main
+    corner(Sidebar,20); stroke(Sidebar,P.PINK_SOFT,1.2)
+    local SL=Instance.new("UIListLayout",Sidebar); SL.Padding=UDim.new(0,6); SL.HorizontalAlignment=Enum.HorizontalAlignment.Center; SL.SortOrder=Enum.SortOrder.LayoutOrder
+    local SP=Instance.new("UIPadding",Sidebar); SP.PaddingTop=UDim.new(0,8)
+
+    -- Content
+    local Content=Instance.new("Frame")
+    Content.Size=UDim2.new(1,-S.sidebarW-14,1,-S.headerH-26); Content.Position=UDim2.new(0,S.sidebarW+10,0,S.headerH+4)
+    Content.BackgroundColor3=P.CONTENT; Content.BorderSizePixel=0; Content.Parent=Main
+    corner(Content,20); stroke(Content,P.PINK_SOFT,1.2)
+    local PageHolder=Instance.new("Frame")
+    PageHolder.Size=UDim2.new(1,-12,1,-12); PageHolder.Position=UDim2.new(0,6,0,6)
+    PageHolder.BackgroundTransparency=1; PageHolder.ClipsDescendants=true; PageHolder.Parent=Content
+
+    local Footer=Instance.new("TextLabel")
+    Footer.Size=UDim2.new(1,-12,0,16); Footer.Position=UDim2.new(0,6,1,-20)
+    Footer.BackgroundTransparency=1; Footer.Text="💖 livyii.main ✿ made with love"
+    Footer.TextColor3=P.PINK; Footer.Font=Enum.Font.Gotham; Footer.TextSize=9; Footer.Parent=Main
+
+    local Pages={}
+    local function regPage(p) table.insert(Pages,p) end
+    local function showPage(target)
+        for _,p in ipairs(Pages) do
+            if p==target then
+                p.Visible=true; p.Position=UDim2.new(0,12,0,0)
+                tween(p,{Position=UDim2.new(0,0,0,0)},.22,Enum.EasingStyle.Quint,Enum.EasingDirection.Out)
+            else p.Visible=false end
+        end
+    end
+
+    local function newPage()
+        local p=Instance.new("ScrollingFrame")
+        p.Size=UDim2.new(1,0,1,0); p.BackgroundTransparency=1; p.BorderSizePixel=0
+        p.ScrollBarThickness=Platform.isMobile and 5 or 3
+        p.ScrollBarImageColor3=P.PINK; p.ScrollBarImageTransparency=.3
+        p.CanvasSize=UDim2.new(0,0,0,0); p.AutomaticCanvasSize=Enum.AutomaticSize.Y
+        p.ScrollingDirection=Enum.ScrollingDirection.Y; p.ScrollingEnabled=true
+        p.ElasticBehavior=Enum.ElasticBehavior.WhenScrollable; p.Active=true; p.Visible=false; p.Parent=PageHolder
+        local l=Instance.new("UIListLayout",p); l.Padding=UDim.new(0,8); l.SortOrder=Enum.SortOrder.LayoutOrder
+        local pad=Instance.new("Frame"); pad.Size=UDim2.new(1,0,0,8); pad.BackgroundTransparency=1; pad.Parent=p
+        regPage(p); return p
+    end
+
+    -- sections & rows
+    local function section(parent,text)
+        local l=Instance.new("TextLabel")
+        l.Size=UDim2.new(1,0,0,18); l.BackgroundTransparency=1
+        l.Text="💕 "..text; l.TextColor3=P.PINK; l.Font=Enum.Font.GothamBold
+        l.TextSize=S.tileFontSize+1; l.TextXAlignment=Enum.TextXAlignment.Left; l.Parent=parent
+        return l
+    end
+    local function row(parent,h)
+        local r=Instance.new("Frame")
+        r.Size=UDim2.new(1,0,0,h or 54); r.BackgroundTransparency=1; r.Parent=parent
+        local l=Instance.new("UIListLayout",r); l.FillDirection=Enum.FillDirection.Horizontal; l.Padding=UDim.new(0,8)
+        return r
+    end
+
+    -- Tile
+    local function makeTile(parent,name,emoji,onToggle,onSettings,wide)
+        local Btn=Instance.new("TextButton")
+        Btn.Size=wide and UDim2.new(1,0,1,0) or UDim2.new(.5,-4,1,0)
+        Btn.BackgroundColor3=P.BTN_BG; Btn.Text=""; Btn.AutoButtonColor=false; Btn.Parent=parent
+        corner(Btn,16); stroke(Btn,P.PINK_SOFT,1.5); grad(Btn,P.BTN_GRAD_A,P.BTN_GRAD_B,90)
+
+        local IconBox=Instance.new("Frame")
+        IconBox.Size=UDim2.new(0,32,0,32); IconBox.Position=UDim2.new(0,10,.5,-16)
+        IconBox.BackgroundColor3=P.BG_SOFT; IconBox.BorderSizePixel=0; IconBox.ZIndex=2; IconBox.Parent=Btn
+        corner(IconBox,10); stroke(IconBox,P.PINK_SOFT,1.2)
+        local IconLbl=Instance.new("TextLabel")
+        IconLbl.Size=UDim2.new(1,0,1,0); IconLbl.BackgroundTransparency=1; IconLbl.Text=emoji
+        IconLbl.TextSize=20; IconLbl.Font=Enum.Font.GothamBold; IconLbl.ZIndex=3; IconLbl.Parent=IconBox
+
+        local Lbl=Instance.new("TextLabel")
+        Lbl.Size=UDim2.new(1,-84,0,16); Lbl.Position=UDim2.new(0,50,0,6); Lbl.BackgroundTransparency=1
+        Lbl.Text=name; Lbl.TextColor3=P.BTN_TEXT; Lbl.Font=Enum.Font.GothamBold
+        Lbl.TextSize=S.tileFontSize; Lbl.TextXAlignment=Enum.TextXAlignment.Left; Lbl.ZIndex=2; Lbl.Parent=Btn
+
+        local StatusLbl=Instance.new("TextLabel")
+        StatusLbl.Size=UDim2.new(1,-84,0,12); StatusLbl.Position=UDim2.new(0,50,1,-18); StatusLbl.BackgroundTransparency=1
+        StatusLbl.Text="off"; StatusLbl.TextColor3=P.DOT_OFF; StatusLbl.Font=Enum.Font.GothamMedium
+        StatusLbl.TextSize=S.statusFontSize; StatusLbl.TextXAlignment=Enum.TextXAlignment.Left; StatusLbl.ZIndex=2; StatusLbl.Parent=Btn
+
+        local gearSize=Platform.isMobile and 26 or 22
+        local Gear=Instance.new("TextButton")
+        Gear.Size=UDim2.new(0,gearSize,0,gearSize); Gear.Position=UDim2.new(1,-gearSize-6,.5,-gearSize/2)
+        Gear.BackgroundColor3=P.GEAR_BG; Gear.Text="⚙"; Gear.TextColor3=P.GEAR_TEXT
+        Gear.Font=Enum.Font.GothamBold; Gear.TextSize=Platform.isMobile and 14 or 12; Gear.AutoButtonColor=false
+        Gear.ZIndex=5; Gear.Parent=Btn; corner(Gear,gearSize/2); stroke(Gear,P.PINK_SOFT,1.5)
+
+        local on=false
+        local function set(v)
+            on=v
+            if on then
+                tween(Btn,{BackgroundColor3=P.BTN_BG_ON},.22,Enum.EasingStyle.Back)
+                tween(Lbl,{TextColor3=P.BTN_TEXT_ON},.22)
+                tween(IconBox,{BackgroundColor3=P.PINK_SOFT},.22)
+                tween(StatusLbl,{Text="on 💕",TextColor3=P.DOT_ON},.22)
+                tween(Btn,{Rotation=2},.15)
+                task.wait(.16); tween(Btn,{Rotation=-1},.15); task.wait(.16)
+                tween(Btn,{Rotation=0},.18,Enum.EasingStyle.Back)
+                heartPop(sg,Btn.AbsolutePosition+Vector2.new(Btn.AbsoluteSize.X-30,20),4)
+            else
+                tween(Btn,{BackgroundColor3=P.BTN_BG},.22)
+                tween(Lbl,{TextColor3=P.BTN_TEXT},.22)
+                tween(IconBox,{BackgroundColor3=P.BG_SOFT},.22)
+                tween(StatusLbl,{Text="off",TextColor3=P.DOT_OFF},.22)
+            end
+            onToggle(on)
+        end
+        Btn.MouseButton1Down:Connect(function() tween(Btn,{BackgroundColor3=on and P.BTN_BG_ON or P.BG_SOFT},.08) end)
+        Btn.MouseButton1Up:Connect(function() tween(Btn,{BackgroundColor3=on and P.BTN_BG_ON or P.BTN_BG},.18,Enum.EasingStyle.Back) end)
+        Btn.MouseButton1Click:Connect(function() set(not on) end)
+        Gear.MouseButton1Click:Connect(function() pop(Gear,5); onSettings() end)
+        return {frame=Btn,set=set}
+    end
+
+    -- Slider
+    local function makeSlider(parent,label,mn,mx,def,suf,dec,onChange)
+        local h=Platform.isMobile and 54 or 48
+        local Holder=Instance.new("Frame")
+        Holder.Size=UDim2.new(1,0,0,h); Holder.BackgroundTransparency=1; Holder.Parent=parent
+        local Lbl=Instance.new("TextLabel")
+        Lbl.Size=UDim2.new(.6,0,0,16); Lbl.BackgroundTransparency=1; Lbl.Text="💗 "..label
+        Lbl.TextColor3=P.BTN_TEXT; Lbl.Font=Enum.Font.GothamMedium; Lbl.TextSize=S.tileFontSize
+        Lbl.TextXAlignment=Enum.TextXAlignment.Left; Lbl.Parent=Holder
+        local Val=Instance.new("TextLabel")
+        Val.Size=UDim2.new(.4,0,0,16); Val.Position=UDim2.new(.6,0,0,0); Val.BackgroundTransparency=1
+        Val.TextColor3=P.PINK; Val.Font=Enum.Font.GothamBold; Val.TextSize=S.tileFontSize
+        Val.TextXAlignment=Enum.TextXAlignment.Right; Val.Parent=Holder
+
+        local trackH=Platform.isMobile and 22 or 18
+        local TrackHit=Instance.new("TextButton")
+        TrackHit.Size=UDim2.new(1,-4,0,trackH); TrackHit.Position=UDim2.new(0,2,0,Platform.isMobile and 26 or 24)
+        TrackHit.BackgroundTransparency=1; TrackHit.Text=""; TrackHit.AutoButtonColor=false; TrackHit.Active=true
+        TrackHit.ZIndex=5; TrackHit.Parent=Holder
+
+        local Track=Instance.new("Frame")
+        Track.Size=UDim2.new(1,-4,0,Platform.isMobile and 12 or 10); Track.Position=UDim2.new(0,2,.5,-5)
+        Track.BackgroundColor3=P.TRACK; Track.BorderSizePixel=0; Track.ZIndex=2; Track.Parent=TrackHit
+        corner(Track,6); stroke(Track,P.PINK_SOFT,1)
+        local Fill=Instance.new("Frame")
+        Fill.Size=UDim2.new(0,0,1,0); Fill.BackgroundColor3=P.FILL_A; Fill.BorderSizePixel=0; Fill.ZIndex=3; Fill.Parent=Track
+        corner(Fill,6); grad(Fill,P.FILL_A,P.FILL_B,0)
+        local kS=Platform.isMobile and 22 or 18
+        local Knob=Instance.new("Frame")
+        Knob.Size=UDim2.new(0,kS,0,kS); Knob.AnchorPoint=Vector2.new(.5,.5); Knob.Position=UDim2.new(0,0,.5,0)
+        Knob.BackgroundColor3=Color3.fromRGB(255,255,252); Knob.ZIndex=4; Knob.Parent=Track; corner(Knob,kS/2); stroke(Knob,P.PINK,2)
+
+        local function fmt(v)
+            if dec==0 then return tostring(math.floor(v+.5))..suf end
+            return string.format("%."..tostring(dec).."f",v)..suf
+        end
+        local function apply(v)
+            local pct=(v-mn)/(mx-mn)
+            tween(Fill,{Size=UDim2.new(pct,0,1,0)},.08)
+            tween(Knob,{Position=UDim2.new(pct,0,.5,0)},.08)
+            Val.Text=fmt(v); onChange(v)
+        end
+        Val.Text=fmt(def)
+        local drag,ai=false,nil
+        local function fromX(x)
+            local rel=math.clamp((x-Track.AbsolutePosition.X)/math.max(Track.AbsoluteSize.X,1),0,1)
+            local v=mn+(mx-mn)*rel; if dec==0 then v=math.floor(v+.5) end; apply(v)
+        end
+        TrackHit.InputBegan:Connect(function(inp)
+            if inp.UserInputType==Enum.UserInputType.MouseButton1 or inp.UserInputType==Enum.UserInputType.Touch then
+                drag=true; ai=inp; fromX(inp.Position.X)
+                tween(Knob,{Size=UDim2.new(0,kS+6,0,kS+6)},.12,Enum.EasingStyle.Back)
+            end
+        end)
+        UIS.InputChanged:Connect(function(inp)
+            if not drag or inp~=ai then return end
+            if inp.UserInputType==Enum.UserInputType.MouseMovement or inp.UserInputType==Enum.UserInputType.Touch then fromX(inp.Position.X) end
+        end)
+        UIS.InputEnded:Connect(function(inp)
+            if not drag or inp~=ai then return end
+            if inp.UserInputType==Enum.UserInputType.MouseButton1 or inp.UserInputType==Enum.UserInputType.Touch then
+                tween(Knob,{Size=UDim2.new(0,kS,0,kS)},.15,Enum.EasingStyle.Back)
+                drag=false; ai=nil
+            end
+        end)
+        task.defer(function() apply(def) end)
+        return Holder
+    end
+
+    -- Part picker
+    local function makePicker(parent,options,def,onChange)
+        local h=Platform.isMobile and 36 or 30
+        local Row=Instance.new("Frame"); Row.Size=UDim2.new(1,0,0,h); Row.BackgroundTransparency=1; Row.Parent=parent
+        local l=Instance.new("UIListLayout",Row); l.FillDirection=Enum.FillDirection.Horizontal; l.Padding=UDim.new(0,6)
+        local btns={}
+        local function select(opt)
+            for n,b in pairs(btns) do
+                local a=(n==opt)
+                tween(b,{BackgroundColor3=a and P.BTN_BG_ON or P.BTN_BG,TextColor3=a and P.BTN_TEXT_ON or P.BTN_TEXT},.15,Enum.EasingStyle.Back)
+            end
+            onChange(opt)
+        end
+        for _,opt in ipairs(options) do
+            local b=Instance.new("TextButton")
+            b.Size=UDim2.new(1/#options,-4,1,0); b.BackgroundColor3=(opt==def) and P.BTN_BG_ON or P.BTN_BG
+            b.Text=opt; b.TextColor3=(opt==def) and P.BTN_TEXT_ON or P.BTN_TEXT
+            b.Font=Enum.Font.GothamBold; b.TextSize=S.tileFontSize; b.AutoButtonColor=false; b.Parent=Row
+            corner(b,12); stroke(b,P.PINK_SOFT,1.5)
+            btns[opt]=b
+            b.MouseButton1Click:Connect(function() select(opt); pop(b,4) end)
+        end
+        return Row
+    end
+
+    -- Color picker
+    local function makeColor(parent,label,def,onChange)
+        local H=Platform.isMobile and 172 or 152
+        local Holder=Instance.new("Frame"); Holder.Size=UDim2.new(1,0,0,H); Holder.BackgroundTransparency=1; Holder.Parent=parent
+        local LRow=Instance.new("Frame"); LRow.Size=UDim2.new(1,0,0,18); LRow.BackgroundTransparency=1; LRow.Parent=Holder
+        local L=Instance.new("TextLabel"); L.Size=UDim2.new(.5,0,1,0); L.BackgroundTransparency=1; L.Text="🎨 "..label
+        L.TextColor3=P.BTN_TEXT; L.Font=Enum.Font.GothamMedium; L.TextSize=S.tileFontSize; L.TextXAlignment=Enum.TextXAlignment.Left; L.Parent=LRow
+        local HL=Instance.new("TextLabel"); HL.Size=UDim2.new(0,70,1,0); HL.Position=UDim2.new(1,-102,0,0); HL.BackgroundTransparency=1
+        HL.TextColor3=P.PINK; HL.Font=Enum.Font.GothamBold; HL.TextSize=9; HL.TextXAlignment=Enum.TextXAlignment.Right; HL.Text="#FFFFFF"; HL.Parent=LRow
+        local pS=Platform.isMobile and 28 or 24
+        local Pv=Instance.new("Frame"); Pv.Size=UDim2.new(0,pS,0,pS-10); Pv.Position=UDim2.new(1,-pS,.5,-(pS-10)/2)
+        Pv.BackgroundColor3=def; Pv.Parent=LRow; corner(Pv,7); stroke(Pv,P.PINK_SOFT,1.5)
+
+        local sH=Platform.isMobile and 24 or 20
+        local HueHit=Instance.new("TextButton"); HueHit.Size=UDim2.new(1,-4,0,sH); HueHit.Position=UDim2.new(0,2,0,22)
+        HueHit.BackgroundTransparency=1; HueHit.Text=""; HueHit.AutoButtonColor=false; HueHit.Active=true; HueHit.Parent=Holder
+        local HueStrip=Instance.new("Frame"); HueStrip.Size=UDim2.new(1,0,1,0); HueStrip.BackgroundColor3=Color3.new(1,1,1); HueStrip.BorderSizePixel=0; HueStrip.ZIndex=2; HueStrip.Parent=HueHit
+        corner(HueStrip,10)
+        local hG=Instance.new("UIGradient")
+        hG.Color=ColorSequence.new({
+            ColorSequenceKeypoint.new(0,Color3.fromRGB(255,60,60)),
+            ColorSequenceKeypoint.new(.16,Color3.fromRGB(255,150,80)),
+            ColorSequenceKeypoint.new(.30,Color3.fromRGB(255,220,100)),
+            ColorSequenceKeypoint.new(.46,Color3.fromRGB(140,220,140)),
+            ColorSequenceKeypoint.new(.62,Color3.fromRGB(120,210,240)),
+            ColorSequenceKeypoint.new(.78,Color3.fromRGB(140,160,255)),
+            ColorSequenceKeypoint.new(.90,Color3.fromRGB(200,150,250)),
+            ColorSequenceKeypoint.new(1,Color3.fromRGB(255,180,200)),
+        }); hG.Parent=HueStrip
+        local HC=Instance.new("Frame"); HC.Size=UDim2.new(0,4,1.3,0); HC.AnchorPoint=Vector2.new(.5,.5); HC.Position=UDim2.new(0,.5,0)
+        HC.BackgroundColor3=Color3.fromRGB(255,255,250); HC.ZIndex=3; HC.Parent=HueHit; corner(HC,2); stroke(HC,P.PINK,1.5)
+
+        local BH=Instance.new("TextButton"); BH.Size=UDim2.new(1,-4,0,sH); BH.Position=UDim2.new(0,2,0,sH+28)
+        BH.BackgroundTransparency=1; BH.Text=""; BH.AutoButtonColor=false; BH.Active=true; BH.Parent=Holder
+        local BS=Instance.new("Frame"); BS.Size=UDim2.new(1,0,1,0); BS.BackgroundColor3=Color3.new(1,1,1); BS.BorderSizePixel=0; BS.ZIndex=2; BS.Parent=BH
+        corner(BS,10)
+        local bG=Instance.new("UIGradient"); bG.Parent=BS
+        local BC=Instance.new("Frame"); BC.Size=UDim2.new(0,4,1.3,0); BC.AnchorPoint=Vector2.new(.5,.5); BC.Position=UDim2.new(0,.5,0)
+        BC.BackgroundColor3=Color3.fromRGB(255,255,250); BC.ZIndex=3; BC.Parent=BH; corner(BC,2); stroke(BC,P.PINK,1.5)
+
+        local PR=Instance.new("Frame"); PR.Size=UDim2.new(1,0,0,22); PR.Position=UDim2.new(0,0,0,sH*2+42); PR.BackgroundTransparency=1; PR.Parent=Holder
+        local pL=Instance.new("UIListLayout",PR); pL.FillDirection=Enum.FillDirection.Horizontal; pL.Padding=UDim.new(0,4)
+        local prS=Platform.isMobile and 22 or 18
+        local presets={
+            Color3.fromRGB(255,180,200),Color3.fromRGB(255,140,170),Color3.fromRGB(255,220,130),
+            Color3.fromRGB(255,200,130),Color3.fromRGB(255,180,100),Color3.fromRGB(220,160,90),
+            Color3.fromRGB(255,100,140),Color3.fromRGB(255,150,80),Color3.fromRGB(140,220,140),
+            Color3.fromRGB(120,210,240),Color3.fromRGB(140,160,255),Color3.fromRGB(255,255,255),
+        }
+        local cH,cS,cV=def:ToHSV()
+        local function toHex(c) return string.format("#%02X%02X%02X",math.floor(c.R*255+.5),math.floor(c.G*255+.5),math.floor(c.B*255+.5)) end
+        local function rb()
+            local base=Color3.fromHSV(cH,1,1)
+            bG.Color=ColorSequence.new({
+                ColorSequenceKeypoint.new(0,Color3.new(1,1,1)),
+                ColorSequenceKeypoint.new(.5,base),
+                ColorSequenceKeypoint.new(1,Color3.new(0,0,0)),
+            })
+        end
+        local function commit(c) Pv.BackgroundColor3=c; HL.Text=toHex(c); onChange(c) end
+        local hD,hI=false,nil
+        local function hFX(x)
+            local rel=math.clamp((x-HueStrip.AbsolutePosition.X)/math.max(HueStrip.AbsoluteSize.X,1),0,1)
+            cH=rel*.9999; HC.Position=UDim2.new(rel,0,.5,0); rb(); commit(Color3.fromHSV(cH,cS,cV))
+        end
+        HueHit.InputBegan:Connect(function(inp)
+            if inp.UserInputType==Enum.UserInputType.MouseButton1 or inp.UserInputType==Enum.UserInputType.Touch then hD=true; hI=inp; hFX(inp.Position.X) end
+        end)
+        local bD,bI=false,nil
+        local function bFX(x)
+            local rel=math.clamp((x-BS.AbsolutePosition.X)/math.max(BS.AbsoluteSize.X,1),0,1)
+            if rel<=.5 then cS=rel*2; cV=1 else cS=1; cV=1-(rel-.5)*2 end
+            BC.Position=UDim2.new(rel,0,.5,0); commit(Color3.fromHSV(cH,cS,cV))
+        end
+        BH.InputBegan:Connect(function(inp)
+            if inp.UserInputType==Enum.UserInputType.MouseButton1 or inp.UserInputType==Enum.UserInputType.Touch then bD=true; bI=inp; bFX(inp.Position.X) end
+        end)
+        UIS.InputChanged:Connect(function(inp)
+            if inp.UserInputType~=Enum.UserInputType.MouseMovement and inp.UserInputType~=Enum.UserInputType.Touch then return end
+            if hD and inp==hI then hFX(inp.Position.X) end
+            if bD and inp==bI then bFX(inp.Position.X) end
+        end)
+        UIS.InputEnded:Connect(function(inp)
+            if inp.UserInputType==Enum.UserInputType.MouseButton1 or inp.UserInputType==Enum.UserInputType.Touch then
+                if inp==hI then hD=false; hI=nil end
+                if inp==bI then bD=false; bI=nil end
+            end
+        end)
+        for _,pc in ipairs(presets) do
+            local pb=Instance.new("TextButton"); pb.Size=UDim2.new(0,prS,0,prS); pb.BackgroundColor3=pc; pb.Text=""; pb.AutoButtonColor=false; pb.Parent=PR
+            corner(pb,prS/2); stroke(pb,P.PINK_SOFT,1)
+            pb.MouseButton1Click:Connect(function()
+                cH,cS,cV=pc:ToHSV(); HC.Position=UDim2.new(cH,0,.5,0)
+                if cV<1 and cS==1 then BC.Position=UDim2.new(.5+(1-cV)*.5,0,.5,0) else BC.Position=UDim2.new(cS*.5,0,.5,0) end
+                rb(); commit(pc); pop(pb,6)
+            end)
+        end
+        HC.Position=UDim2.new(cH,0,.5,0)
+        if cV<1 and cS==1 then BC.Position=UDim2.new(.5+(1-cV)*.5,0,.5,0) else BC.Position=UDim2.new(cS*.5,0,.5,0) end
+        rb(); commit(def)
+        return Holder
+    end
+
+    -- Pages
+    local MainPage=newPage()
+    local CombatPage=newPage()
+    local VisualPage=newPage()
+    local UtilPage=newPage()
+    local CreditsPage=newPage()
+
+    -- Shaders state
+    local ShaderPresets = {
+        pudding={label="🍮 pudding",tint=Color3.fromRGB(255,252,240),atmo=Color3.fromRGB(255,248,235),decay=Color3.fromRGB(255,238,220)},
+        sakura ={label="🌸 sakura", tint=Color3.fromRGB(255,245,248),atmo=Color3.fromRGB(255,235,242),decay=Color3.fromRGB(255,220,235)},
+        dreamy ={label="🌙 dreamy", tint=Color3.fromRGB(248,244,255),atmo=Color3.fromRGB(238,232,255),decay=Color3.fromRGB(225,218,250)},
+        pastel ={label="🍬 pastel", tint=Color3.fromRGB(255,250,245),atmo=Color3.fromRGB(255,245,235),decay=Color3.fromRGB(255,235,220)},
+        sunset ={label="🌅 sunset", tint=Color3.fromRGB(255,242,230),atmo=Color3.fromRGB(255,225,210),decay=Color3.fromRGB(255,210,195)},
+        mint   ={label="🌿 mint",   tint=Color3.fromRGB(242,255,250),atmo=Color3.fromRGB(228,252,242),decay=Color3.fromRGB(215,248,232)},
+        sky    ={label="☁️ sky",    tint=Color3.fromRGB(244,250,255),atmo=Color3.fromRGB(232,246,255),decay=Color3.fromRGB(218,238,255)},
+    }
+    local function clearShaders()
+        for _,o in ipairs(Lighting:GetChildren()) do
+            if o:GetAttribute("livyii_shader") then o:Destroy() end
+        end
+    end
+    local function applyShaders()
+        clearShaders()
+        if not Config.ShaderEnabled then return end
+        local pr=ShaderPresets[Config.ShaderPreset] or ShaderPresets.pudding
+        local k=Config.ShaderIntensity
+        local mul=Platform.isMobile and .75 or 1
+        local a=Instance.new("Atmosphere"); a:SetAttribute("livyii_shader",true)
+        a.Density=(0.06+0.08*k)*mul; a.Offset=.08; a.Color=pr.atmo; a.Decay=pr.decay
+        a.Glare=(0.20+0.25*k)*mul; a.Haze=(0.04+0.06*k)*mul; a.Parent=Lighting
+        local cc=Instance.new("ColorCorrectionEffect"); cc:SetAttribute("livyii_shader",true)
+        cc.Brightness=0.02+0.04*k; cc.Contrast=0.15+0.12*k; cc.Saturation=0.25+0.20*k
+        cc.TintColor=pr.tint; cc.Parent=Lighting
+        local b=Instance.new("BloomEffect"); b:SetAttribute("livyii_shader",true)
+        b.Intensity=(0.60+0.50*k)*mul; b.Size=6+5*k; b.Threshold=0.95-0.10*k; b.Parent=Lighting
+        local s=Instance.new("BloomEffect"); s.Name="livyii_gloss_shine"; s:SetAttribute("livyii_shader",true)
+        s.Intensity=(0.35+0.35*k)*mul; s.Size=3+2*k; s.Threshold=1.6-0.20*k; s.Parent=Lighting
+        local r=Instance.new("SunRaysEffect"); r:SetAttribute("livyii_shader",true)
+        r.Intensity=(0.08+0.10*k)*mul; r.Spread=.9; r.Parent=Lighting
+    end
+
+    -- Hitbox / Aim / Floating buttons (declared early for functions)
+    local hitboxHighlights = {}
+    local LockedTarget=nil
+    local LockBtn,HitboxBtn,AimBtn,ToggleBtn=nil,nil,nil,nil
+    local GuiVisible=true
+
+    local function applyHitboxTo(plr)
+        local char=plr.Character; if not char then return end
+        local hrp=char:FindFirstChild("HumanoidRootPart"); if not hrp then return end
+        if Config.HitboxExpander and Config.HitboxActive then
+            pcall(function() hrp.Size=Vector3.new(Config.HitboxSize,Config.HitboxSize,Config.HitboxSize) end)
+            local h=hitboxHighlights[plr]
+            if not h or not h.Parent then
+                h=Instance.new("Highlight"); h.Name="livyii_hitbox"
+                h.DepthMode=Enum.HighlightDepthMode.AlwaysOnTop; h.Adornee=char; h.Parent=char
+                hitboxHighlights[plr]=h
+            end
+            h.FillColor=Config.HitboxColor; h.FillTransparency=Config.HitboxTransparency
+            h.OutlineColor=Config.HitboxColor; h.OutlineTransparency=0
+        else
+            pcall(function() hrp.Size=Vector3.new(2,2,1) end)
+            local h=hitboxHighlights[plr]; if h then pcall(function() h:Destroy() end) end
+            hitboxHighlights[plr]=nil
+        end
+    end
+    local function refreshHitboxes()
+        for _,p in ipairs(Players:GetPlayers()) do
+            if p~=LP then applyHitboxTo(p) end
+        end
+    end
+
+    local aimHL=Instance.new("Highlight"); aimHL.Name="livyii_aim_hl"
+    aimHL.FillColor=Config.AimColor; aimHL.OutlineColor=Config.AimColor
+    aimHL.FillTransparency=.65; aimHL.OutlineTransparency=.2
+    aimHL.DepthMode=Enum.HighlightDepthMode.AlwaysOnTop; aimHL.Enabled=false; aimHL.Parent=CoreGui
+    local aimBB=Instance.new("BillboardGui"); aimBB.Name="livyii_aim_tag"
+    aimBB.Size=UDim2.new(0,Platform.isMobile and 140 or 120,0,30); aimBB.StudsOffset=Vector3.new(0,3,0)
+    aimBB.AlwaysOnTop=true; aimBB.MaxDistance=500; aimBB.Enabled=false; aimBB.Parent=CoreGui
+    local aimTag=Instance.new("Frame"); aimTag.Size=UDim2.new(1,0,1,0); aimTag.BackgroundColor3=Config.AimColor
+    aimTag.BackgroundTransparency=.15; aimTag.BorderSizePixel=0; aimTag.Parent=aimBB
+    corner(aimTag,14); stroke(aimTag,P.PINK,2)
+    local aimTagLbl=Instance.new("TextLabel"); aimTagLbl.Size=UDim2.new(1,-8,1,0); aimTagLbl.Position=UDim2.new(0,4,0,0)
+    aimTagLbl.BackgroundTransparency=1; aimTagLbl.Text="🎯"; aimTagLbl.TextColor3=Color3.fromRGB(255,255,255)
+    aimTagLbl.Font=Enum.Font.GothamBold; aimTagLbl.TextSize=Platform.isMobile and 12 or 11; aimTagLbl.Parent=aimTag
+    local aimFOV=Instance.new("Frame"); aimFOV.BackgroundTransparency=1; aimFOV.AnchorPoint=Vector2.new(.5,.5)
+    aimFOV.Size=UDim2.new(0,300,0,300); aimFOV.Visible=false; aimFOV.ZIndex=50; aimFOV.Parent=sg; corner(aimFOV,5000)
+    local aFS=Instance.new("UIStroke",aimFOV); aFS.Color=Config.AimColor; aFS.Thickness=1.5; aFS.Transparency=.35
+    aFS.ApplyStrokeMode=Enum.ApplyStrokeMode.Border
+    local aFG=Instance.new("UIStroke",aimFOV); aFG.Color=P.PINK; aFG.Thickness=5; aFG.Transparency=.8
+    aFG.ApplyStrokeMode=Enum.ApplyStrokeMode.Border
+
+    local partMap={Head="Head",Torso="UpperTorso",Root="HumanoidRootPart"}
+    local function getClosest(fov)
+        local best,bestD=nil,math.huge
+        local cur=getCursor()
+        for _,plr in ipairs(Players:GetPlayers()) do
+            if plr~=LP and plr.Character then
+                local hrp=plr.Character:FindFirstChild("HumanoidRootPart")
+                local hum=plr.Character:FindFirstChildOfClass("Humanoid")
+                if hrp and hum and hum.Health>0 then
+                    local sp,on=Cam:WorldToViewportPoint(hrp.Position)
+                    if on then
+                        local d=(Vector2.new(sp.X,sp.Y)-cur).Magnitude
+                        if d<=fov and d<bestD then bestD=d; best=plr end
+                    end
+                end
+            end
+        end
+        return best
+    end
+
+    local function updateLockVis()
+        if not LockBtn then return end
+        local icon=LockBtn:FindFirstChild("Icon")
+        local nl=LockBtn:FindFirstChild("NameLbl")
+        local g=LockBtn:FindFirstChildOfClass("UIGradient")
+        if not icon or not nl then return end
+        if LockedTarget then
+            tween(LockBtn,{BackgroundColor3=P.LOCK_ON_A},.22,Enum.EasingStyle.Back)
+            if g then g.Color=ColorSequence.new(P.LOCK_ON_A,P.LOCK_ON_B) end
+            icon.Text="💖"; tween(icon,{TextColor3=Color3.fromRGB(255,255,255)},.22)
+            nl.Text=LockedTarget.DisplayName or LockedTarget.Name
+            nl.TextColor3=Color3.fromRGB(255,255,255)
+        else
+            tween(LockBtn,{BackgroundColor3=P.LOCK_IDLE_A},.22)
+            if g then g.Color=ColorSequence.new(P.LOCK_IDLE_A,P.LOCK_IDLE_B) end
+            icon.Text="🎯"; tween(icon,{TextColor3=P.BTN_TEXT_ON},.22)
+            nl.Text="tap to lock"; nl.TextColor3=P.BTN_TEXT
+        end
+    end
+    local function updateHBVis()
+        if not HitboxBtn then return end
+        local icon=HitboxBtn:FindFirstChild("Icon"); local lbl=HitboxBtn:FindFirstChild("NameLbl")
+        local g=HitboxBtn:FindFirstChildOfClass("UIGradient")
+        if not icon or not lbl then return end
+        if Config.HitboxActive then
+            tween(HitboxBtn,{BackgroundColor3=P.HB_ON_A},.22,Enum.EasingStyle.Back)
+            if g then g.Color=ColorSequence.new(P.HB_ON_A,P.HB_ON_B) end
+            icon.Text="🎀"; tween(icon,{TextColor3=Color3.fromRGB(255,255,255)},.22)
+            lbl.Text="active 💕"; lbl.TextColor3=Color3.fromRGB(255,255,255)
+        else
+            tween(HitboxBtn,{BackgroundColor3=P.HB_IDLE_A},.22)
+            if g then g.Color=ColorSequence.new(P.HB_IDLE_A,P.HB_IDLE_B) end
+            icon.Text="🎈"; tween(icon,{TextColor3=P.BTN_TEXT_ON},.22)
+            lbl.Text="tap to expand"; lbl.TextColor3=P.BTN_TEXT
+        end
+    end
+    local function updateAimVis()
+        if not AimBtn then return end
+        local icon=AimBtn:FindFirstChild("Icon"); local lbl=AimBtn:FindFirstChild("NameLbl")
+        local g=AimBtn:FindFirstChildOfClass("UIGradient")
+        if not icon or not lbl then return end
+        if Config.AimAssist then
+            tween(AimBtn,{BackgroundColor3=P.AIM_ON_A},.22,Enum.EasingStyle.Back)
+            if g then g.Color=ColorSequence.new(P.AIM_ON_A,P.AIM_ON_B) end
+            icon.Text="💫"; tween(icon,{TextColor3=Color3.fromRGB(255,255,255)},.22)
+            lbl.Text="tracking ♡"; lbl.TextColor3=Color3.fromRGB(255,255,255)
+        else
+            tween(AimBtn,{BackgroundColor3=P.AIM_IDLE_A},.22)
+            if g then g.Color=ColorSequence.new(P.AIM_IDLE_A,P.AIM_IDLE_B) end
+            icon.Text="✨"; tween(icon,{TextColor3=P.BTN_TEXT_ON},.22)
+            lbl.Text="tap to aim"; lbl.TextColor3=P.BTN_TEXT
+        end
+    end
+
+    local function makeFloat(name,yPos,iA,iB,oA,oB,iconTxt)
+        local b=Instance.new("TextButton"); b.Name=name
+        b.Size=UDim2.new(0,S.floatBtn,0,S.floatBtn); b.Position=UDim2.new(0,20,.5,yPos)
+        b.BackgroundColor3=iA; b.Text=""; b.AutoButtonColor=false; b.Active=true; b.Parent=sg
+        corner(b,S.floatBtn/2); stroke(b,P.PINK,2)
+        local g=Instance.new("UIGradient",b); g.Color=ColorSequence.new(iA,iB); g.Rotation=90
+        local icon=Instance.new("TextLabel"); icon.Name="Icon"; icon.Size=UDim2.new(1,0,.6,0)
+        icon.Position=UDim2.new(0,0,.05,0); icon.BackgroundTransparency=1; icon.Text=iconTxt
+        icon.TextColor3=P.BTN_TEXT_ON; icon.Font=Enum.Font.GothamBold; icon.TextSize=S.floatBtn*.35; icon.Parent=b
+        local nl=Instance.new("TextLabel"); nl.Name="NameLbl"; nl.Size=UDim2.new(1,-6,0,14)
+        nl.Position=UDim2.new(0,3,1,-18); nl.BackgroundTransparency=1; nl.Text="tap"
+        nl.TextColor3=P.PINK; nl.Font=Enum.Font.GothamBold; nl.TextSize=8
+        nl.TextTruncate=Enum.TextTruncate.AtEnd; nl.Parent=b
+        b.Size=UDim2.new(0,0,0,0)
+        tween(b,{Size=UDim2.new(0,S.floatBtn,0,S.floatBtn)},.4,Enum.EasingStyle.Back,Enum.EasingDirection.Out)
+        return b
+    end
+    local function wireFloat(b,onTap)
+        local drag,ds,do_,moved,ai=false,nil,nil,false,nil
+        b.InputBegan:Connect(function(inp)
+            if inp.UserInputType==Enum.UserInputType.MouseButton1 or inp.UserInputType==Enum.UserInputType.Touch then
+                drag=true; moved=false; ai=inp; ds=inp.Position; do_=b.Position
+                tween(b,{Size=UDim2.new(0,S.floatBtn-6,0,S.floatBtn-6)},.1)
+            end
+        end)
+        UIS.InputChanged:Connect(function(inp)
+            if not drag or inp~=ai then return end
+            if inp.UserInputType==Enum.UserInputType.MouseMovement or inp.UserInputType==Enum.UserInputType.Touch then
+                local dx=inp.Position.X-ds.X; local dy=inp.Position.Y-ds.Y
+                if math.abs(dx)>6 or math.abs(dy)>6 then moved=true end
+                if moved then b.Position=UDim2.new(do_.X.Scale,do_.X.Offset+dx,do_.Y.Scale,do_.Y.Offset+dy) end
+            end
+        end)
+        UIS.InputEnded:Connect(function(inp)
+            if not drag or inp~=ai then return end
+            if inp.UserInputType==Enum.UserInputType.MouseButton1 or inp.UserInputType==Enum.UserInputType.Touch then
+                tween(b,{Size=UDim2.new(0,S.floatBtn,0,S.floatBtn)},.2,Enum.EasingStyle.Back)
+                if not moved then onTap() end
+                drag=false; ai=nil
+            end
+        end)
+    end
+    local function createLockBtn()
+        if LockBtn then return end
+        local b=makeFloat("LockBtn",-95,P.LOCK_IDLE_A,P.LOCK_IDLE_B,P.LOCK_ON_A,P.LOCK_ON_B,"🎯")
+        LockBtn=b; b:FindFirstChild("NameLbl").Text="tap to lock"
+        wireFloat(b,function()
+            if LockedTarget then LockedTarget=nil; updateLockVis()
+            else
+                local t=getClosest(Config.CamlockFOV)
+                if t then LockedTarget=t; updateLockVis()
+                else
+                    local o=b.Position
+                    tween(b,{Position=o+UDim2.new(0,5,0,0)},.06); task.wait(.07)
+                    tween(b,{Position=o-UDim2.new(0,5,0,0)},.06); task.wait(.07)
+                    tween(b,{Position=o},.06)
+                end
+            end
+        end)
+    end
+    local function createHBBtn()
+        if HitboxBtn then return end
+        local b=makeFloat("HitboxBtn",-30,P.HB_IDLE_A,P.HB_IDLE_B,P.HB_ON_A,P.HB_ON_B,"🎈")
+        HitboxBtn=b; b:FindFirstChild("NameLbl").Text="tap to expand"
+        wireFloat(b,function() Config.HitboxActive=not Config.HitboxActive; updateHBVis(); refreshHitboxes() end)
+    end
+    local function createAimBtn()
+        if AimBtn then return end
+        local b=makeFloat("AimBtn",35,P.AIM_IDLE_A,P.AIM_IDLE_B,P.AIM_ON_A,P.AIM_ON_B,"✨")
+        AimBtn=b; b:FindFirstChild("NameLbl").Text="tap to aim"
+        wireFloat(b,function() Config.AimAssist=not Config.AimAssist; updateAimVis() end)
+    end
+    local function removeLock()
+        if LockBtn then local b=LockBtn; LockBtn=nil
+            tween(b,{Size=UDim2.new(0,0,0,0),BackgroundTransparency=1},.22); task.wait(.24); b:Destroy() end
+        LockedTarget=nil
+    end
+    local function removeHB()
+        if HitboxBtn then local b=HitboxBtn; HitboxBtn=nil
+            tween(b,{Size=UDim2.new(0,0,0,0),BackgroundTransparency=1},.22); task.wait(.24); b:Destroy() end
+        Config.HitboxActive=false
+    end
+    local function removeAim()
+        if AimBtn then local b=AimBtn; AimBtn=nil
+            tween(b,{Size=UDim2.new(0,0,0,0),BackgroundTransparency=1},.22); task.wait(.24); b:Destroy() end
+    end
+
+    -- Main page content
+    section(MainPage,"welcome ♡")
+    local wc=Instance.new("Frame"); wc.Size=UDim2.new(1,0,0,68); wc.BackgroundColor3=P.BTN_BG
+    wc.BorderSizePixel=0; wc.Parent=MainPage; corner(wc,16); stroke(wc,P.PINK_SOFT,1.5)
+    grad(wc,P.BTN_GRAD_A,P.BTN_GRAD_B,90)
+    local we=Instance.new("TextLabel"); we.Size=UDim2.new(0,44,1,0); we.Position=UDim2.new(0,8,0,0)
+    we.BackgroundTransparency=1; we.Text=profileData and profileData.emoji or "🍮"
+    we.TextSize=30; we.Font=Enum.Font.GothamBold; we.Parent=wc
+    local wn=Instance.new("TextLabel"); wn.Size=UDim2.new(1,-60,0,22); wn.Position=UDim2.new(0,52,0,10)
+    wn.BackgroundTransparency=1
+    wn.Text=profileData and ("welcome, "..(LP.DisplayName or LP.Name).."!") or ("hi "..(LP.DisplayName or LP.Name).."! 💕")
+    wn.TextColor3=P.HEADER_TEXT; wn.Font=Enum.Font.GothamBold; wn.TextSize=13
+    wn.TextXAlignment=Enum.TextXAlignment.Left; wn.Parent=wc
+    local wr=Instance.new("TextLabel"); wr.Size=UDim2.new(1,-60,0,18); wr.Position=UDim2.new(0,52,0,34)
+    wr.BackgroundTransparency=1; wr.Text=profileData and ("💖 "..profileData.role) or "💖 pick a tab on the left!"
+    wr.TextColor3=P.PINK; wr.Font=Enum.Font.GothamMedium; wr.TextSize=10
+    wr.TextXAlignment=Enum.TextXAlignment.Left; wr.Parent=wc
+
+    local hint=Instance.new("Frame"); hint.Size=UDim2.new(1,0,0,46); hint.BackgroundColor3=P.BG_SOFT
+    hint.BorderSizePixel=0; hint.Parent=MainPage; corner(hint,14); stroke(hint,P.PINK_SOFT,1)
+    local hl=Instance.new("TextLabel"); hl.Size=UDim2.new(1,-20,1,0); hl.Position=UDim2.new(0,10,0,0)
+    hl.BackgroundTransparency=1; hl.Text="👈  tap the icons to switch tabs!"
+    hl.TextColor3=P.PINK; hl.Font=Enum.Font.GothamMedium; hl.TextSize=11
+    hl.TextXAlignment=Enum.TextXAlignment.Left; hl.Parent=hint
+
+    -- Combat page
+    section(CombatPage,"combat ♡")
+    local cR1=row(CombatPage,54)
+    local cR2=row(CombatPage,54)
+    local CamPage=newPage()
+    local HBPage=newPage()
+    local AimPage=newPage()
+
+    makeTile(cR1,"Camlock","🎯",
+        function(v) Config.Camlock=v; if v then createLockBtn() else removeLock() end end,
+        function() showPage(CamPage) end)
+    makeTile(cR1,"Hitbox","🎈",
+        function(v)
+            Config.HitboxExpander=v
+            if v then createHBBtn() else removeHB(); refreshHitboxes() end
+        end,
+        function() showPage(HBPage) end)
+    makeTile(cR2,"Pro Aim","✨",
+        function(v) Config.AimAssist=v; if v then createAimBtn() else removeAim() end; updateAimVis() end,
+        function() showPage(AimPage) end,true)
+
+    -- Visual
+    section(VisualPage,"visual ♡")
+    local vR1=row(VisualPage,54)
+    local vR2=row(VisualPage,54)
+    local FogPage=newPage()
+    local SkyPage=newPage()
+    local ShadPage=newPage()
+
+    makeTile(vR1,"Fog","🌫️",
+        function(v)
+            Config.FogEnabled=v
+            if v then
+                Lighting.FogColor=Color3.fromRGB(255,240,225); Lighting.FogEnd=Config.FogEnd; Lighting.FogStart=0
+            else
+                Lighting.FogEnd=100000; Lighting.FogStart=0
+            end
+        end,
+        function() showPage(FogPage) end)
+    makeTile(vR1,"Sky","🌈",
+        function(v)
+            Config.SkyEnabled=v
+            for _,o in ipairs(Lighting:GetChildren()) do if o:GetAttribute("livyii_sky") then o:Destroy() end end
+            if v then
+                local a=Instance.new("Atmosphere"); a:SetAttribute("livyii_sky",true)
+                a.Density=.5*Config.SkyIntensity; a.Offset=.3; a.Color=Color3.fromRGB(255,240,210)
+                a.Decay=Color3.fromRGB(255,225,190); a.Glare=0; a.Haze=.4; a.Parent=Lighting
+                local cc=Instance.new("ColorCorrectionEffect"); cc:SetAttribute("livyii_sky",true)
+                cc.Brightness=.05; cc.Contrast=-.1; cc.Saturation=.15
+                cc.TintColor=Color3.fromRGB(255,245,230); cc.Parent=Lighting
+                local b=Instance.new("BloomEffect"); b:SetAttribute("livyii_sky",true)
+                b.Intensity=.5; b.Size=20; b.Threshold=1; b.Parent=Lighting
+            end
+        end,
+        function() showPage(SkyPage) end)
+    makeTile(vR2,"Shaders","✨",
+        function(v) Config.ShaderEnabled=v; applyShaders() end,
+        function() showPage(ShadPage) end,true)
+
+    -- Utility
+    section(UtilPage,"utility ♡")
+    local uR=row(UtilPage,54)
+    makeTile(uR,"Antilock","🔓",function(v) Config.Antilock=v end,function() end,true)
+
+    -- Credits
+    section(CreditsPage,"made with love ♡")
+    local CREDITS={
+        {name="livyiilolly",role="developer & owner",emoji="👑",color=Color3.fromRGB(255,220,130),desc="made the whole script"},
+        {name="2lmost",role="developer",emoji="💻",color=Color3.fromRGB(200,220,255),desc="helped build & test"},
+        {name="narvstar",role="cutesy community manager",emoji="🌸",color=Color3.fromRGB(255,200,220),desc="keeping the community cute"},
+        {name="ttwitme",role="yuri",emoji="💜",color=Color3.fromRGB(220,180,255),desc="certified yuri"},
+        {name="deepseek",role="ai assistant",emoji="🤖",color=Color3.fromRGB(180,210,255),desc="helped code & design everything"},
+    }
+    for _,c in ipairs(CREDITS) do
+        local card=Instance.new("Frame"); card.Size=UDim2.new(1,0,0,58); card.BackgroundColor3=P.BTN_BG
+        card.BorderSizePixel=0; card.Parent=CreditsPage; corner(card,14); stroke(card,c.color,1.5)
+        grad(card,P.BTN_GRAD_A,P.BTN_GRAD_B,90)
+        local e=Instance.new("TextLabel"); e.Size=UDim2.new(0,44,1,0); e.Position=UDim2.new(0,8,0,0)
+        e.BackgroundTransparency=1; e.Text=c.emoji; e.TextSize=28; e.Font=Enum.Font.GothamBold; e.Parent=card
+        local n=Instance.new("TextLabel"); n.Size=UDim2.new(1,-60,0,18); n.Position=UDim2.new(0,56,0,8)
+        n.BackgroundTransparency=1; n.Text=c.name; n.TextColor3=P.HEADER_TEXT
+        n.Font=Enum.Font.GothamBold; n.TextSize=12; n.TextXAlignment=Enum.TextXAlignment.Left; n.Parent=card
+        local r=Instance.new("TextLabel"); r.Size=UDim2.new(1,-60,0,14); r.Position=UDim2.new(0,56,0,26)
+        r.BackgroundTransparency=1; r.Text="💕 "..c.role; r.TextColor3=P.PINK
+        r.Font=Enum.Font.GothamMedium; r.TextSize=9; r.TextXAlignment=Enum.TextXAlignment.Left; r.Parent=card
+        local d=Instance.new("TextLabel"); d.Size=UDim2.new(1,-60,0,12); d.Position=UDim2.new(0,56,0,40)
+        d.BackgroundTransparency=1; d.Text=c.desc; d.TextColor3=P.FOOTER
+        d.Font=Enum.Font.Gotham; d.TextSize=9; d.TextXAlignment=Enum.TextXAlignment.Left; d.Parent=card
+    end
+    local thanks=Instance.new("TextLabel"); thanks.Size=UDim2.new(1,0,0,32); thanks.BackgroundTransparency=1
+    thanks.Text="thank you for using livyii.main 🍮💛💖"; thanks.TextColor3=P.PINK
+    thanks.Font=Enum.Font.GothamMedium; thanks.TextSize=10; thanks.TextWrapped=true
+    thanks.TextXAlignment=Enum.TextXAlignment.Center; thanks.Parent=CreditsPage
+
+    -- Settings content
+    makeSlider(CamPage,"smoothness",.05,1,Config.CamlockSmoothness,"",2,function(v) Config.CamlockSmoothness=v end)
+    makeSlider(CamPage,"fov",50,1000,Config.CamlockFOV," px",0,function(v) Config.CamlockFOV=v end)
+    makeSlider(CamPage,"y offset",-5,5,Config.CamlockYOffset,"",1,function(v) Config.CamlockYOffset=v end)
+    section(CamPage,"target part"); makePicker(CamPage,{"Head","Torso","Root"},"Head",function(v) Config.CamlockPart=v end)
+
+    makeSlider(HBPage,"size",1,20,Config.HitboxSize," studs",1,function(v)
+        Config.HitboxSize=v; if Config.HitboxExpander and Config.HitboxActive then refreshHitboxes() end
+    end)
+    makeSlider(HBPage,"transparency",0,1,Config.HitboxTransparency,"",2,function(v)
+        Config.HitboxTransparency=v
+        if Config.HitboxExpander and Config.HitboxActive then
+            for _,h in pairs(hitboxHighlights) do if h and h.Parent then h.FillTransparency=v end end
+        end
+    end)
+    section(HBPage,"color")
+    makeColor(HBPage,"color",Config.HitboxColor,function(c)
+        Config.HitboxColor=c
+        if Config.HitboxExpander and Config.HitboxActive then
+            for _,h in pairs(hitboxHighlights) do if h and h.Parent then h.FillColor=c; h.OutlineColor=c end end
+        end
+    end)
+
+    local aimInfo=Instance.new("TextLabel"); aimInfo.Size=UDim2.new(1,0,0,44); aimInfo.BackgroundTransparency=1
+    aimInfo.Text="💕 highlights the closest player with a soft glow ✨"; aimInfo.TextColor3=P.PINK
+    aimInfo.Font=Enum.Font.GothamMedium; aimInfo.TextSize=10; aimInfo.TextWrapped=true
+    aimInfo.TextXAlignment=Enum.TextXAlignment.Left; aimInfo.TextYAlignment=Enum.TextYAlignment.Top; aimInfo.Parent=AimPage
+    section(AimPage,"range"); makeSlider(AimPage,"aim fov",50,800,Config.AimFOV," px",0,function(v) Config.AimFOV=v end)
+    section(AimPage,"visuals"); makeColor(AimPage,"aim color",Config.AimColor,function(c)
+        Config.AimColor=c; aimHL.FillColor=c; aimHL.OutlineColor=c; aimTag.BackgroundColor3=c; aFS.Color=c
+    end)
+
+    makeSlider(FogPage,"fog end",50,2000,Config.FogEnd," studs",0,function(v) Config.FogEnd=v; if Config.FogEnabled then Lighting.FogEnd=v end end)
+
+    makeSlider(SkyPage,"intensity",0,1,Config.SkyIntensity,"",2,function(v)
+        Config.SkyIntensity=v
+        if Config.SkyEnabled then
+            for _,o in ipairs(Lighting:GetChildren()) do
+                if o:GetAttribute("livyii_sky") and o:IsA("Atmosphere") then o.Density=.5*v end
+            end
+        end
+    end)
+
+    local shInfo=Instance.new("TextLabel"); shInfo.Size=UDim2.new(1,0,0,30); shInfo.BackgroundTransparency=1
+    shInfo.Text="💖 glossy lighting — pick a mood ✨"; shInfo.TextColor3=P.PINK
+    shInfo.Font=Enum.Font.GothamMedium; shInfo.TextSize=9; shInfo.TextWrapped=true
+    shInfo.TextXAlignment=Enum.TextXAlignment.Left; shInfo.TextYAlignment=Enum.TextYAlignment.Top; shInfo.Parent=ShadPage
+    section(ShadPage,"preset")
+    local shRow=Instance.new("Frame"); shRow.Size=UDim2.new(1,0,0,60); shRow.BackgroundTransparency=1; shRow.Parent=ShadPage
+    local shL=Instance.new("UIListLayout",shRow); shL.FillDirection=Enum.FillDirection.Horizontal
+    shL.Padding=UDim.new(0,5); shL.Wraps=true
+    local shBtns={}
+    local sortedKeys={}
+    for k,v in pairs(ShaderPresets) do table.insert(sortedKeys,{key=k,label=v.label}) end
+    table.sort(sortedKeys,function(a,b) return a.label<b.label end)
+    for _,opt in ipairs(sortedKeys) do
+        local b=Instance.new("TextButton"); b.Size=UDim2.new(0,82,0,26)
+        b.BackgroundColor3=(opt.key==Config.ShaderPreset) and P.BTN_BG_ON or P.BTN_BG
+        b.Text=opt.label; b.TextColor3=(opt.key==Config.ShaderPreset) and P.BTN_TEXT_ON or P.BTN_TEXT
+        b.Font=Enum.Font.GothamBold; b.TextSize=9; b.AutoButtonColor=false; b.Parent=shRow
+        corner(b,13); stroke(b,P.PINK_SOFT,1)
+        shBtns[opt.key]=b
+        b.MouseButton1Click:Connect(function()
+            for n,bb in pairs(shBtns) do
+                local a=(n==opt.key)
+                tween(bb,{BackgroundColor3=a and P.BTN_BG_ON or P.BTN_BG,TextColor3=a and P.BTN_TEXT_ON or P.BTN_TEXT},.18,Enum.EasingStyle.Back)
+            end
+            Config.ShaderPreset=opt.key
+            if Config.ShaderEnabled then applyShaders() end
+            pop(b,5)
+        end)
+    end
+    section(ShadPage,"intensity")
+    makeSlider(ShadPage,"strength",0,1,Config.ShaderIntensity,"",2,function(v)
+        Config.ShaderIntensity=v; if Config.ShaderEnabled then applyShaders() end
+    end)
+
+    -- Toggle visibility button
+    local function toggleVis()
+        GuiVisible=not GuiVisible
+        local tv=GuiVisible
+        if tv then
+            Main.Visible=true; Main.BackgroundTransparency=1
+            Main.Size=UDim2.new(0,S.W-20,0,S.H)
+            tween(Main,{BackgroundTransparency=0,Size=UDim2.new(0,S.W,0,S.H)},.28,Enum.EasingStyle.Back)
+        else
+            tween(Main,{BackgroundTransparency=1,Size=UDim2.new(0,S.W-20,0,S.H)},.2)
+            task.wait(.21); Main.Visible=false
+        end
+        if ToggleBtn then
+            local icon=ToggleBtn:FindFirstChild("Icon"); local g=ToggleBtn:FindFirstChildOfClass("UIGradient")
+            if icon then icon.Text=tv and "✕" or "💖" end
+            if g then g.Color=tv and ColorSequence.new(P.TOGGLE_A,P.TOGGLE_B) or ColorSequence.new(P.HEADER_A,P.HEADER_B) end
+            tween(ToggleBtn,{BackgroundColor3=tv and P.TOGGLE_A or P.HEADER_A},.28,Enum.EasingStyle.Back)
+        end
+    end
+    local function createToggle()
+        if ToggleBtn then return end
+        local b=Instance.new("TextButton"); b.Name="ToggleBtn"
+        b.Size=UDim2.new(0,S.toggleBtn,0,S.toggleBtn); b.Position=UDim2.new(1,-S.toggleBtn-14,0,20)
+        b.BackgroundColor3=P.TOGGLE_A; b.Text=""; b.AutoButtonColor=false; b.Active=true; b.ZIndex=100; b.Parent=sg
+        corner(b,S.toggleBtn/2); stroke(b,P.PINK,2)
+        local g=Instance.new("UIGradient",b); g.Color=ColorSequence.new(P.TOGGLE_A,P.TOGGLE_B); g.Rotation=45
+        local icon=Instance.new("TextLabel"); icon.Name="Icon"; icon.Size=UDim2.new(1,0,1,0)
+        icon.BackgroundTransparency=1; icon.Text="✕"; icon.TextColor3=Color3.fromRGB(255,255,255)
+        icon.Font=Enum.Font.GothamBold; icon.TextSize=S.toggleBtn*.45; icon.Parent=b
+        ToggleBtn=b
+        b.Size=UDim2.new(0,0,0,0)
+        tween(b,{Size=UDim2.new(0,S.toggleBtn,0,S.toggleBtn)},.4,Enum.EasingStyle.Back,Enum.EasingDirection.Out)
+        local drag,ds,do_,moved,ai=false,nil,nil,false,nil
+        b.InputBegan:Connect(function(inp)
+            if inp.UserInputType==Enum.UserInputType.MouseButton1 or inp.UserInputType==Enum.UserInputType.Touch then
+                drag=true; moved=false; ai=inp; ds=inp.Position; do_=b.Position
+                tween(b,{Size=UDim2.new(0,S.toggleBtn-5,0,S.toggleBtn-5)},.1)
+            end
+        end)
+        UIS.InputChanged:Connect(function(inp)
+            if not drag or inp~=ai then return end
+            if inp.UserInputType==Enum.UserInputType.MouseMovement or inp.UserInputType==Enum.UserInputType.Touch then
+                local dx=inp.Position.X-ds.X; local dy=inp.Position.Y-ds.Y
+                if math.abs(dx)>6 or math.abs(dy)>6 then moved=true end
+                if moved then b.Position=UDim2.new(do_.X.Scale,do_.X.Offset+dx,do_.Y.Scale,do_.Y.Offset+dy) end
+            end
+        end)
+        UIS.InputEnded:Connect(function(inp)
+            if not drag or inp~=ai then return end
+            if inp.UserInputType==Enum.UserInputType.MouseButton1 or inp.UserInputType==Enum.UserInputType.Touch then
+                tween(b,{Size=UDim2.new(0,S.toggleBtn,0,S.toggleBtn)},.18,Enum.EasingStyle.Back)
+                if not moved then toggleVis() end
+                drag=false; ai=nil
+            end
+        end)
+    end
+
+    -- Sidebar tabs
+    local tabBtns={}
+    local function mkTab(emoji,page)
+        local b=Instance.new("TextButton"); b.Size=UDim2.new(0,S.tabSize,0,S.tabSize)
+        b.BackgroundColor3=Color3.fromRGB(255,253,250); b.Text=emoji; b.TextSize=math.floor(S.tabSize*.5)
+        b.Font=Enum.Font.GothamBold; b.AutoButtonColor=false; b.Parent=Sidebar
+        corner(b,S.tabSize/2); stroke(b,P.PINK_SOFT,1.2)
+        tabBtns[b]={page=page}
+        b.MouseButton1Down:Connect(function() tween(b,{Size=UDim2.new(0,S.tabSize-3,0,S.tabSize-3)},.08) end)
+        b.MouseButton1Up:Connect(function() tween(b,{Size=UDim2.new(0,S.tabSize,0,S.tabSize)},.15,Enum.EasingStyle.Back) end)
+        b.MouseButton1Click:Connect(function()
+            for bb,data in pairs(tabBtns) do
+                if bb==b then
+                    tween(bb,{BackgroundColor3=P.BTN_BG_ON,TextSize=math.floor(S.tabSize*.55)},.2,Enum.EasingStyle.Back)
+                else
+                    tween(bb,{BackgroundColor3=Color3.fromRGB(255,253,250),TextSize=math.floor(S.tabSize*.5)},.2)
+                end
+            end
+            showPage(page)
+            pop(b,4)
+            heartPop(sg,b.AbsolutePosition,4)
+        end)
+        return b
+    end
+    local tC=mkTab("🎯",CombatPage)
+    local tV=mkTab("🎨",VisualPage)
+    local tU=mkTab("🛡️",UtilPage)
+    local tCr=mkTab("🏆",CreditsPage)
+    tween(tC,{BackgroundColor3=P.BTN_BG_ON,TextSize=math.floor(S.tabSize*.55)},.2,Enum.EasingStyle.Back)
+
+    -- Start on welcome
+    showPage(MainPage)
+    task.delay(2,function()
+        showPage(CombatPage)
+        for bb in pairs(tabBtns) do
+            if bb==tC then tween(bb,{BackgroundColor3=P.BTN_BG_ON,TextSize=math.floor(S.tabSize*.55)},.2,Enum.EasingStyle.Back)
+            else tween(bb,{BackgroundColor3=Color3.fromRGB(255,253,250),TextSize=math.floor(S.tabSize*.5)},.2) end
+        end
+    end)
+
+    -- Header buttons
+    MinBtn.MouseButton1Click:Connect(function()
+        PageHolder.Visible=not PageHolder.Visible
+        Sidebar.Visible=PageHolder.Visible; Content.Visible=PageHolder.Visible; Footer.Visible=PageHolder.Visible
+        Main:TweenSize(
+            Main.Size.Y.Offset==S.H and UDim2.new(0,S.W,0,S.headerH) or UDim2.new(0,S.W,0,S.H),
+            Enum.EasingDirection.Out,Enum.EasingStyle.Back,.32,true
+        )
+    end)
+    CloseBtn.MouseButton1Click:Connect(function() if GuiVisible then toggleVis() end end)
+
+    createToggle()
+
+    -- Loops
+    RunService.RenderStepped:Connect(function(dt)
+        if not Config.Camlock or not LockedTarget then return end
+        local char=LockedTarget.Character
+        if not char or not char.Parent then LockedTarget=nil; updateLockVis(); return end
+        local hum=char:FindFirstChildOfClass("Humanoid")
+        if not hum or hum.Health<=0 then LockedTarget=nil; updateLockVis(); return end
+        local part=char:FindFirstChild(partMap[Config.CamlockPart])
+        if not part then return end
+        local la=part.Position+Vector3.new(0,Config.CamlockYOffset,0)
+        local goal=CFrame.new(Cam.CFrame.Position,la)
+        local alpha=1-math.pow(1-Config.CamlockSmoothness,dt*60)
+        Cam.CFrame=Cam.CFrame:Lerp(goal,alpha)
+    end)
+
+    RunService.RenderStepped:Connect(function()
+        if not Config.AimAssist then
+            aimHL.Enabled=false; aimBB.Enabled=false; aimFOV.Visible=false; return
+        end
+        if Config.AimFOVRing then
+            local cur=getCursor()
+            aimFOV.Visible=true
+            aimFOV.Size=UDim2.new(0,Config.AimFOV*2,0,Config.AimFOV*2)
+            aimFOV.Position=UDim2.new(0,cur.X,0,cur.Y)
+        else aimFOV.Visible=false end
+        local tgt=getClosest(Config.AimFOV)
+        if tgt and tgt.Character then
+            local head=tgt.Character:FindFirstChild("Head") or tgt.Character:FindFirstChild("HumanoidRootPart")
+            if head then
+                if Config.AimHighlight then
+                    aimHL.Adornee=tgt.Character; aimHL.FillColor=Config.AimColor; aimHL.OutlineColor=Config.AimColor; aimHL.Enabled=true
+                else aimHL.Enabled=false end
+                if Config.AimNameTag then
+                    aimBB.Adornee=head; aimBB.Enabled=true
+                    aimTagLbl.Text="💖 "..(tgt.DisplayName or tgt.Name)
+                else aimBB.Enabled=false end
+            end
+        else
+            aimHL.Enabled=false; aimBB.Enabled=false
+        end
+    end)
+
+    Players.PlayerAdded:Connect(function(p)
+        p.CharacterAdded:Connect(function()
+            if Config.HitboxExpander and Config.HitboxActive then task.wait(1); applyHitboxTo(p) end
+        end)
+    end)
+
+    RunService.Heartbeat:Connect(function()
+        if not Config.Antilock then return end
+        local char=LP.Character
+        if char then
+            local hrp=char:FindFirstChild("HumanoidRootPart")
+            if hrp and hrp.AssemblyLinearVelocity.Magnitude<1 then
+                hrp.CFrame=hrp.CFrame+Vector3.new(0,.1,0)
+            end
+        end
+    end)
+
+    print("🍮 livyii.main loaded 💖✨")
+end
+
+-- Key system
+local function showKey(onSuccess)
+    local kg=Instance.new("ScreenGui"); kg.Name="livyii.key"; kg.ResetOnSpawn=false
+    kg.IgnoreGuiInset=true; kg.DisplayOrder=500; kg.ZIndexBehavior=Enum.ZIndexBehavior.Sibling; parentGui(kg)
+    local f=Instance.new("Frame"); f.Size=UDim2.new(0,270,0,195); f.Position=UDim2.new(.5,-135,.5,-97)
+    f.BackgroundColor3=P.BG; f.BorderSizePixel=0; f.Active=true; f.Parent=kg
+    corner(f,24); stroke(f,P.PINK,2); grad(f,Color3.fromRGB(255,253,245),Color3.fromRGB(255,242,235),90)
+    local h=Instance.new("TextLabel"); h.Size=UDim2.new(1,0,0,40); h.BackgroundColor3=P.HEADER_A; h.BorderSizePixel=0
+    h.Text="🍮  livyii.main  🍮"; h.TextColor3=P.HEADER_TEXT; h.Font=Enum.Font.GothamBold; h.TextSize=13; h.Parent=f
+    corner(h,24); grad(h,P.HEADER_A,P.HEADER_B,90)
+    local fix=Instance.new("Frame"); fix.Size=UDim2.new(1,0,0,24); fix.Position=UDim2.new(0,0,1,-24); fix.BackgroundColor3=P.HEADER_B; fix.BorderSizePixel=0; fix.Parent=h
+    local drag,ds,do_,di=false,nil,nil,nil
+    h.InputBegan:Connect(function(inp)
+        if inp.UserInputType==Enum.UserInputType.MouseButton1 or inp.UserInputType==Enum.UserInputType.Touch then
+            drag=true; di=inp; ds=inp.Position; do_=f.Position
+        end
+    end)
+    UIS.InputChanged:Connect(function(inp)
+        if not drag or inp~=di then return end
+        if inp.UserInputType==Enum.UserInputType.MouseMovement or inp.UserInputType==Enum.UserInputType.Touch then
+            local d=inp.Position-ds
+            f.Position=UDim2.new(do_.X.Scale,do_.X.Offset+d.X,do_.Y.Scale,do_.Y.Offset+d.Y)
+        end
+    end)
+    UIS.InputEnded:Connect(function(inp) if inp==di then drag=false; di=nil end end)
+    local cb=Instance.new("TextButton"); cb.Size=UDim2.new(0,28,0,28); cb.Position=UDim2.new(1,-34,0,6)
+    cb.BackgroundColor3=P.BTN_BG; cb.Text="✕"; cb.TextColor3=P.HEADER_TEXT; cb.Font=Enum.Font.GothamBold
+    cb.TextSize=13; cb.AutoButtonColor=false; cb.ZIndex=10; cb.Parent=h; corner(cb,14); stroke(cb,P.PINK_SOFT,1.5)
+    cb.MouseButton1Click:Connect(function() kg:Destroy(); warn("🍮 livyii.main: key not entered.") end)
+    local sub=Instance.new("TextLabel"); sub.Size=UDim2.new(1,-30,0,20); sub.Position=UDim2.new(0,15,0,50)
+    sub.BackgroundTransparency=1; sub.Text="💖 enter this week's key 💖"; sub.TextColor3=P.PINK
+    sub.Font=Enum.Font.GothamBold; sub.TextSize=11; sub.TextXAlignment=Enum.TextXAlignment.Center; sub.Parent=f
+    local box=Instance.new("TextBox"); box.Size=UDim2.new(1,-30,0,36); box.Position=UDim2.new(0,15,0,74)
+    box.BackgroundColor3=P.BTN_BG; box.Text=""; box.PlaceholderText="type key here..."
+    box.PlaceholderColor3=Color3.fromRGB(230,195,195); box.TextColor3=P.BTN_TEXT_ON
+    box.Font=Enum.Font.GothamBold; box.TextSize=13; box.TextXAlignment=Enum.TextXAlignment.Center
+    box.ClearTextOnFocus=false; box.Parent=f; corner(box,14); stroke(box,P.PINK_SOFT,1.5)
+    local submit=Instance.new("TextButton"); submit.Size=UDim2.new(1,-30,0,36); submit.Position=UDim2.new(0,15,0,118)
+    submit.BackgroundColor3=P.BTN_BG_ON; submit.Text="🍮  unlock  🍮"; submit.TextColor3=P.BTN_TEXT_ON
+    submit.Font=Enum.Font.GothamBold; submit.TextSize=13; submit.AutoButtonColor=false; submit.Parent=f
+    corner(submit,14); stroke(submit,P.PINK,2)
+    local status=Instance.new("TextLabel"); status.Size=UDim2.new(1,-30,0,18); status.Position=UDim2.new(0,15,1,-24)
+    status.BackgroundTransparency=1; status.Text=""; status.TextColor3=P.BTN_TEXT
+    status.Font=Enum.Font.GothamMedium; status.TextSize=10; status.TextXAlignment=Enum.TextXAlignment.Center; status.Parent=f
+    submit.MouseButton1Down:Connect(function() tween(submit,{BackgroundColor3=P.FILL_A},.08) end)
+    submit.MouseButton1Up:Connect(function() tween(submit,{BackgroundColor3=P.BTN_BG_ON},.15,Enum.EasingStyle.Back) end)
+    local function trySubmit()
+        local ent=string.lower(string.gsub(box.Text,"%s",""))
+        local cur=getKey()
+        if ent=="" then
+            status.Text="type something first! 🍮"; status.TextColor3=P.ERROR
+            local o=f.Position
+            tween(f,{Position=o+UDim2.new(0,5,0,0)},.05); task.wait(.06)
+            tween(f,{Position=o-UDim2.new(0,5,0,0)},.05); task.wait(.06)
+            tween(f,{Position=o},.05); return
+        end
+        if ent==cur then
+            status.Text="correct! next... 💖"; status.TextColor3=P.SUCCESS
+            tween(submit,{BackgroundColor3=P.SUCCESS},.2)
+            heartPop(kg,UDim2.new(.5,0,.85,0))
+            task.wait(.6); _keyPassed=true; kg:Destroy(); onSuccess()
+        else
+            status.Text="wrong key! try again 💔"; status.TextColor3=P.ERROR
+            box.Text=""
+            local o=f.Position
+            for _=1,3 do
+                tween(f,{Position=o+UDim2.new(0,6,0,0)},.05); task.wait(.06)
+                tween(f,{Position=o-UDim2.new(0,6,0,0)},.05); task.wait(.06)
+            end
+            tween(f,{Position=o},.08)
+        end
+    end
+    submit.MouseButton1Click:Connect(trySubmit)
+    box.FocusLost:Connect(function(ep) if ep then trySubmit() end end)
+    f.Size=UDim2.new(0,0,0,0)
+    tween(f,{Size=UDim2.new(0,270,0,195)},.4,Enum.EasingStyle.Back,Enum.EasingDirection.Out)
+end
+
+-- Boot
+local pn,pd=getProfile()
+if pn then
+    _keyPassed=true
+    Platform.isMobile=UIS.TouchEnabled and not UIS.MouseEnabled
+    showWelcome(pn,pd)
+    task.wait(1.2)
+    startMain(pn,pd)
+else
+    showKey(function()
+        task.wait(.3)
+        showPlatform(function(isM)
+            Platform.isMobile=isM
+            task.wait(.2)
+            startMain()
+        end)
+    end)
+end
