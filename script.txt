@@ -1,4 +1,4 @@
--- livyii.main - Glossier Shaders + Team Update
+-- livyii.main - Full Script + Key Gate + Yuri
 local Players          = game:GetService("Players")
 local RunService       = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -10,11 +10,12 @@ local LocalPlayer = Players.LocalPlayer
 local Camera      = workspace.CurrentCamera
 local Mouse       = LocalPlayer:GetMouse()
 
--- PROFILES
+-- PROFILES (bypass key system)
 local PROFILES = {
     ["livyiilolly"] = { role = "developer & owner",        emoji = "👑", color = Color3.fromRGB(255, 220, 130), msg = "welcome back, boss!" },
     ["2lmost"]      = { role = "developer",                emoji = "💻", color = Color3.fromRGB(200, 220, 255), msg = "hii rave!" },
     ["narvstar"]    = { role = "cutesy community manager", emoji = "🌸", color = Color3.fromRGB(255, 200, 220), msg = "hii narv!" },
+    ["ttwitme"]     = { role = "yuri",                     emoji = "💜", color = Color3.fromRGB(220, 180, 255), msg = "hii yuri!" },
 }
 
 local function getLocalProfile()
@@ -35,6 +36,10 @@ end
 
 -- PLATFORM
 local Platform = { isMobile = false }
+
+-- 🔒 KEY GATE
+local _keyPassed = false
+
 local Sizes = {
     pc = {
         mainW = 245, mainH = 305, headerH = 38,
@@ -149,15 +154,19 @@ local function getCursorPos()
     return Vector2.new(Mouse.X, Mouse.Y)
 end
 
+local function parentGui(gui)
+    if gethui then gui.Parent = gethui()
+    elseif syn and syn.protect_gui then syn.protect_gui(gui); gui.Parent = CoreGui
+    else gui.Parent = CoreGui end
+end
+
 local function showWelcomeToast(uname, data)
     local gui = Instance.new("ScreenGui")
     gui.Name = "livyii.welcome"
     gui.ResetOnSpawn = false
     gui.IgnoreGuiInset = true
     gui.DisplayOrder = 900
-    if gethui then gui.Parent = gethui()
-    elseif syn and syn.protect_gui then syn.protect_gui(gui); gui.Parent = CoreGui
-    else gui.Parent = CoreGui end
+    parentGui(gui)
 
     local f = Instance.new("Frame")
     f.Size = UDim2.new(0, 240, 0, 60)
@@ -202,9 +211,7 @@ local function showPlatformPicker(onSelect)
     gui.IgnoreGuiInset = true
     gui.DisplayOrder = 600
     gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    if gethui then gui.Parent = gethui()
-    elseif syn and syn.protect_gui then syn.protect_gui(gui); gui.Parent = CoreGui
-    else gui.Parent = CoreGui end
+    parentGui(gui)
 
     local Frame = Instance.new("Frame")
     Frame.Size = UDim2.new(0, 300, 0, 200)
@@ -301,9 +308,7 @@ local function playIntro()
     local IntroGui = Instance.new("ScreenGui")
     IntroGui.Name = "livyii.intro"; IntroGui.ResetOnSpawn = false
     IntroGui.IgnoreGuiInset = true; IntroGui.DisplayOrder = 999
-    if gethui then IntroGui.Parent = gethui()
-    elseif syn and syn.protect_gui then syn.protect_gui(IntroGui); IntroGui.Parent = CoreGui
-    else IntroGui.Parent = CoreGui end
+    parentGui(IntroGui)
 
     local Veil = Instance.new("Frame")
     Veil.Size = UDim2.new(1, 0, 1, 0); Veil.BackgroundColor3 = Color3.fromRGB(255, 250, 224)
@@ -400,15 +405,19 @@ local function playIntro()
 end
 
 local function startMain(profileName, profileData)
+    -- 🔒 HARD GATE — must have key or be staff
+    if not _keyPassed and not (profileName and profileData) then
+        warn("🍮 livyii.main: no key provided — access denied.")
+        return
+    end
+
     playIntro()
     local s = sz()
 
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name = "livyii.main"; ScreenGui.ResetOnSpawn = false
     ScreenGui.IgnoreGuiInset = true; ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    if gethui then ScreenGui.Parent = gethui()
-    elseif syn and syn.protect_gui then syn.protect_gui(ScreenGui); ScreenGui.Parent = CoreGui
-    else ScreenGui.Parent = CoreGui end
+    parentGui(ScreenGui)
 
     local Main = Instance.new("Frame")
     Main.Size = UDim2.new(0, s.mainW, 0, s.mainH)
@@ -998,44 +1007,39 @@ local function startMain(profileName, profileData)
         local k = Config.ShaderIntensity
         local perfMul = Platform.isMobile and 0.75 or 1
 
-        -- Atmosphere — low haze, high glare = glossy wet air
         local atmo = Instance.new("Atmosphere")
         atmo:SetAttribute("livyii_shader", true)
         atmo.Density = (0.06 + 0.08 * k) * perfMul
         atmo.Offset  = 0.08
         atmo.Color   = preset.atmo
         atmo.Decay   = preset.decay
-        atmo.Glare   = (0.20 + 0.25 * k) * perfMul      -- more halos
+        atmo.Glare   = (0.20 + 0.25 * k) * perfMul
         atmo.Haze    = (0.04 + 0.06 * k) * perfMul
         atmo.Parent  = Lighting
 
-        -- Color grade — juicy + sharp
         local cc = Instance.new("ColorCorrectionEffect")
         cc:SetAttribute("livyii_shader", true)
         cc.Brightness = 0.02 + 0.04 * k
-        cc.Contrast   = 0.15 + 0.12 * k                  -- more pop
-        cc.Saturation = 0.25 + 0.20 * k                  -- richer colors
+        cc.Contrast   = 0.15 + 0.12 * k
+        cc.Saturation = 0.25 + 0.20 * k
         cc.TintColor  = preset.tint
         cc.Parent     = Lighting
 
-        -- MAIN GLOSS BLOOM — tighter but stronger = shiny
         local bloom = Instance.new("BloomEffect")
         bloom:SetAttribute("livyii_shader", true)
-        bloom.Intensity = (0.60 + 0.50 * k) * perfMul    -- stronger shine
-        bloom.Size      = 6 + 5 * k                       -- TIGHTER (glossy!)
-        bloom.Threshold = 0.95 - 0.10 * k                 -- lower = more surfaces shine
+        bloom.Intensity = (0.60 + 0.50 * k) * perfMul
+        bloom.Size      = 6 + 5 * k
+        bloom.Threshold = 0.95 - 0.10 * k
         bloom.Parent    = Lighting
 
-        -- SECONDARY SHINE — wet highlight pop
         local shine = Instance.new("BloomEffect")
         shine.Name          = "livyii_gloss_shine"
         shine:SetAttribute("livyii_shader", true)
         shine.Intensity     = (0.35 + 0.35 * k) * perfMul
-        shine.Size          = 3 + 2 * k                   -- VERY tight wet pop
-        shine.Threshold     = 1.6 - 0.20 * k              -- only bright surfaces
+        shine.Size          = 3 + 2 * k
+        shine.Threshold     = 1.6 - 0.20 * k
         shine.Parent        = Lighting
 
-        -- Sun rays — glossy streaks
         local rays = Instance.new("SunRaysEffect")
         rays:SetAttribute("livyii_shader", true)
         rays.Intensity = (0.08 + 0.10 * k) * perfMul
@@ -1673,6 +1677,7 @@ local function startMain(profileName, profileData)
         { name = "livyiilolly", role = "developer & owner",        emoji = "👑", color = Color3.fromRGB(255, 220, 130), desc = "made the whole script" },
         { name = "2lmost",      role = "developer",                emoji = "💻", color = Color3.fromRGB(200, 220, 255), desc = "helped build & test" },
         { name = "narvstar",    role = "cutesy community manager", emoji = "🌸", color = Color3.fromRGB(255, 200, 220), desc = "keeping the community cute" },
+        { name = "ttwitme",     role = "yuri",                     emoji = "💜", color = Color3.fromRGB(220, 180, 255), desc = "certified yuri" },
         { name = "deepseek",    role = "ai assistant",             emoji = "🤖", color = Color3.fromRGB(180, 210, 255), desc = "helped code & design everything" },
     }
 
@@ -1816,9 +1821,7 @@ local function showKeySystem(onSuccess)
     KeyGui.Name = "livyii.key"; KeyGui.ResetOnSpawn = false
     KeyGui.IgnoreGuiInset = true; KeyGui.DisplayOrder = 500
     KeyGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    if gethui then KeyGui.Parent = gethui()
-    elseif syn and syn.protect_gui then syn.protect_gui(KeyGui); KeyGui.Parent = CoreGui
-    else KeyGui.Parent = CoreGui end
+    parentGui(KeyGui)
 
     local Frame = Instance.new("Frame")
     Frame.Size = UDim2.new(0, 260, 0, 180)
@@ -1879,7 +1882,10 @@ local function showKeySystem(onSuccess)
     CloseB.TextSize = 12; CloseB.AutoButtonColor = false
     CloseB.ZIndex = 10; CloseB.Parent = Header
     corner(CloseB, 13); stroke(CloseB, P.STROKE_SOFT, 1)
-    CloseB.MouseButton1Click:Connect(function() KeyGui:Destroy() end)
+    CloseB.MouseButton1Click:Connect(function()
+        KeyGui:Destroy()
+        warn("🍮 livyii.main: key not entered. re-execute to try again.")
+    end)
 
     local Sub = Instance.new("TextLabel")
     Sub.Size = UDim2.new(1, -30, 0, 18); Sub.Position = UDim2.new(0, 15, 0, 48)
@@ -1931,7 +1937,10 @@ local function showKeySystem(onSuccess)
             Status.Text = "correct! next... ✨"
             Status.TextColor3 = P.SUCCESS
             tween(Submit, { BackgroundColor3 = P.SUCCESS }, 0.2)
-            task.wait(0.6); KeyGui:Destroy(); onSuccess()
+            task.wait(0.6)
+            _keyPassed = true          -- 🔓 unlock the gate
+            KeyGui:Destroy()
+            onSuccess()
         else
             Status.Text = "wrong key! try again 💔"
             Status.TextColor3 = P.ERROR
@@ -1956,6 +1965,7 @@ end
 local profileName, profileData = getLocalProfile()
 
 if profileName then
+    _keyPassed = true          -- 🔓 staff auto-pass
     Platform.isMobile = UserInputService.TouchEnabled and not UserInputService.MouseEnabled
     showWelcomeToast(profileName, profileData)
     task.wait(1.2)
