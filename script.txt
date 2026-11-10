@@ -1,3 +1,9 @@
+--[[
+    livyii.main - Pompompurin Theme
+    Optimized for PC + Mobile
+    Silent Aim logic adapted from hcsilente
+]]
+
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
 local PlayerGui = Player:WaitForChild("PlayerGui")
@@ -9,14 +15,26 @@ local Workspace = game:GetService("Workspace")
 local cam = workspace.CurrentCamera
 local mouse = Player:GetMouse()
 
-local cream = Color3.fromRGB(254, 252, 178)      -- FEFCB2
-local darkBrown = Color3.fromRGB(114, 61, 71)     -- 723D47
-local medBrown = Color3.fromRGB(122, 77, 58)      -- 7A4D3A
-local white = Color3.fromRGB(255, 255, 255)
+-- ===================== PLATFORM DETECTION =====================
+local isMobile = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
+local isPC = not isMobile
 
-local customFont = Enum.Font.PatrickHand
+-- Scale factors
+local UI_SCALE = isMobile and 0.72 or 1
+local CARD_W = math.floor(580 * UI_SCALE)
+local CARD_H = math.floor(isMobile and 420 or 450)
+local HEADER_H = math.floor(isMobile and 110 or 140)
 
-_G.FOV_RADIUS = 100
+-- Colors (Pompompurin)
+local cream     = Color3.fromRGB(254, 252, 178) -- FEFCB2
+local darkBrown = Color3.fromRGB(114, 61, 71)   -- 723D47
+local medBrown  = Color3.fromRGB(122, 77, 58)   -- 7A4D3A
+local white     = Color3.fromRGB(255, 255, 255)
+
+local customFont = Enum.Font.Gotham
+
+-- ===================== GLOBAL CONFIG =====================
+_G.FOV_RADIUS = 150
 _G.ShowFOV = false
 _G.RevolverBypass = false
 _G.WallCheck = false
@@ -24,6 +42,12 @@ _G.SilentAimEnabled = true
 _G.KnockCheck = false
 _G.Whitelist = _G.Whitelist or {}
 _G.BulletSpreadAmount = 100
+_G.SilentAimHitChance = 100
+_G.SilentAimPart = "Head"
+_G.SilentAimClosestPart = false
+_G.SilentAimMaxDist = 1000
+_G.SilentAimPredX = 0
+_G.SilentAimPredY = 0
 
 _G.CamlockEnabled = false
 _G.CamlockToggleKey = "C"
@@ -69,37 +93,183 @@ local AllHitPartOptions = {
     "LeftFoot", "RightFoot", "LeftHand", "RightHand", "Closest Point"
 }
 
+local bodyPartsList = {
+    "Head", "UpperTorso", "HumanoidRootPart", "LowerTorso",
+    "LeftUpperArm", "RightUpperArm", "LeftLowerArm", "RightLowerArm",
+    "LeftHand", "RightHand", "LeftUpperLeg", "RightUpperLeg",
+    "LeftLowerLeg", "RightLowerLeg", "LeftFoot", "RightFoot"
+}
+
+-- ===================== SILENT AIM (from hcsilente) =====================
+local silentAimCachedPart = nil
+
+local function isHoldingRevolver()
+    if not _G.RevolverBypass then return false end
+    local char = Player.Character
+    if not char then return false end
+    local tool = char:FindFirstChildOfClass("Tool")
+    if tool then
+        local n = string.lower(tool.Name)
+        if string.find(n, "revolver") or string.find(n, "rev") then return true end
+    end
+    return false
+end
+
+local function getHum(p) local c = p and p.Character; return c and c:FindFirstChildOfClass("Humanoid") end
+local function getHRP(p) local c = p and p.Character; return c and c:FindFirstChild("HumanoidRootPart") end
+local function isAlive(p) local h = getHum(p); return h and h.Health > 0 end
+
+local function wallBetween(pos)
+    if not _G.WallCheck then return false end
+    local ro = cam.CFrame.Position
+    local rd = pos - ro
+    local params = RaycastParams.new()
+    params.FilterDescendantsInstances = {Player.Character}
+    params.FilterType = Enum.RaycastFilterType.Exclude
+    local hit = workspace:Raycast(ro, rd, params)
+    if not hit then return false end
+    for _, p in pairs(Players:GetPlayers()) do
+        if p.Character and hit.Instance:IsDescendantOf(p.Character) then return false end
+    end
+    return true
+end
+
+local function safeWorldToViewportPoint(pos)
+    local sp, on = Vector3.new(), false
+    pcall(function() sp, on = cam:WorldToViewportPoint(pos) end)
+    return sp, on
+end
+
+local function getClosestBodyPart(char)
+    local closestPart, shortestDist = nil, math.huge
+    local mousePos = UserInputService:GetMouseLocation()
+    for _, pName in ipairs(bodyPartsList) do
+        local part = char:FindFirstChild(pName)
+        if part then
+            local sp, on = safeWorldToViewportPoint(part.Position)
+            local dist = on and (Vector2.new(sp.X, sp.Y) - mousePos).Magnitude or math.huge
+            if dist < shortestDist then shortestDist = dist; closestPart = part end
+        end
+    end
+    return closestPart or char:FindFirstChild("Head") or char:FindFirstChild("HumanoidRootPart")
+end
+
+local function getTargetPart(char)
+    if not char then return nil end
+    if _G.SilentAimClosestPart then return getClosestBodyPart(char) end
+    return char:FindFirstChild(_G.SilentAimPart) or char:FindFirstChild("Head") or char:FindFirstChild("HumanoidRootPart")
+end
+
+local function getClosestPlayerToCursor()
+    if isHoldingRevolver() then return nil end
+    local closestPart, shortestDist = nil, _G.FOV_RADIUS
+    local mousePos = UserInputService:GetMouseLocation()
+    for _, p in pairs(Players:GetPlayers()) do
+        if p ~= Player and isAlive(p) then
+            if _G.Whitelist and _G.Whitelist[p.UserId] then continue end
+            local hrp = getHRP(p)
+            if hrp then
+                local dist3D = (hrp.Position - cam.CFrame.Position).Magnitude
+                if dist3D <= _G.SilentAimMaxDist then
+                    local sp, on = safeWorldToViewportPoint(hrp.Position)
+                    if on then
+                        local dist2D = (Vector2.new(sp.X, sp.Y) - mousePos).Magnitude
+                        if dist2D < shortestDist then
+                            local part = getTargetPart(p.Character)
+                            if part and not wallBetween(part.Position) then
+                                shortestDist = dist2D
+                                closestPart = part
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+    return closestPart
+end
+
+-- Metatable silent aim
+pcall(function()
+    local _grm = getrawmetatable(game)
+    local _oldIndex = _grm.__index
+    setreadonly(_grm, false)
+    _grm.__index = function(self, key)
+        if not checkcaller() and self == mouse and _G.SilentAimEnabled and not isHoldingRevolver() then
+            if (key == "Hit" or key == "Target" or key == "UnitRay") and silentAimCachedPart then
+                if math.random(1, 100) <= (_G.SilentAimHitChance or 100) then
+                    local origin = cam.CFrame.Position
+                    local hitPos = silentAimCachedPart.Position + Vector3.new(
+                        silentAimCachedPart.AssemblyLinearVelocity.X * (_G.SilentAimPredX or 0),
+                        silentAimCachedPart.AssemblyLinearVelocity.Y * (_G.SilentAimPredY or 0),
+                        silentAimCachedPart.AssemblyLinearVelocity.Z * (_G.SilentAimPredX or 0)
+                    )
+                    if key == "UnitRay" then return Ray.new(origin, (hitPos - origin).Unit)
+                    elseif key == "Hit" then return CFrame.new(hitPos)
+                    elseif key == "Target" then return silentAimCachedPart end
+                end
+            end
+        end
+        return _oldIndex(self, key)
+    end
+    setreadonly(_grm, true)
+end)
+
+-- FOV Circle (Drawing - safe fail)
+local fovCircle = nil
+pcall(function()
+    fovCircle = Drawing.new("Circle")
+    fovCircle.Thickness = 1.5
+    fovCircle.NumSides = 64
+    fovCircle.Radius = _G.FOV_RADIUS
+    fovCircle.Color = medBrown
+    fovCircle.Filled = false
+    fovCircle.Visible = false
+    fovCircle.Transparency = 0.8
+end)
+
+RunService.RenderStepped:Connect(function()
+    if fovCircle then
+        local mousePos = UserInputService:GetMouseLocation()
+        fovCircle.Position = mousePos
+        fovCircle.Radius = _G.FOV_RADIUS
+        fovCircle.Visible = _G.SilentAimEnabled and _G.ShowFOV and not isHoldingRevolver()
+    end
+    silentAimCachedPart = _G.SilentAimEnabled and getClosestPlayerToCursor() or nil
+end)
+
+-- ===================== UI =====================
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "LivyiiMainUI"
 screenGui.Parent = PlayerGui
 screenGui.ResetOnSpawn = false
 screenGui.IgnoreGuiInset = true
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
 local cardContainer = Instance.new("Frame")
 cardContainer.Name = "CardContainer"
-cardContainer.Size = UDim2.new(0, 580, 0, 450)
-cardContainer.Position = UDim2.new(0.5, -290, 0.5, -225)
+cardContainer.Size = UDim2.new(0, CARD_W, 0, CARD_H)
+cardContainer.Position = UDim2.new(0.5, -CARD_W/2, 0.5, -CARD_H/2)
 cardContainer.BackgroundColor3 = cream
 cardContainer.BorderSizePixel = 0
 cardContainer.BackgroundTransparency = 1
 cardContainer.ClipsDescendants = true
 cardContainer.Parent = screenGui
 
-TweenService:Create(cardContainer, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 0}):Play()
+TweenService:Create(cardContainer, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 0}):Play()
 
 local cardCorner = Instance.new("UICorner")
-cardCorner.CornerRadius = UDim.new(0, 24)
+cardCorner.CornerRadius = UDim.new(0, isMobile and 18 or 24)
 cardCorner.Parent = cardContainer
 
 local uiStroke = Instance.new("UIStroke")
 uiStroke.Color = medBrown
-uiStroke.Thickness = 5
+uiStroke.Thickness = isMobile and 3 or 5
 uiStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-uiStroke.LineJoinMode = Enum.LineJoinMode.Round
 uiStroke.Parent = cardContainer
 
+-- Floating dots
 local dotsContainer = Instance.new("Frame")
-dotsContainer.Name = "DotsContainer"
 dotsContainer.Size = UDim2.new(1, 0, 1, 0)
 dotsContainer.BackgroundTransparency = 1
 dotsContainer.ClipsDescendants = true
@@ -108,76 +278,94 @@ dotsContainer.Parent = cardContainer
 
 local activeDots = {}
 local rng = Random.new()
+local dotCount = isMobile and 22 or 40
 
-for i = 1, 55 do
-    local size = rng:NextInteger(4, 8)
-    local alpha = rng:NextNumber(0.35, 0.65)
+for i = 1, dotCount do
+    local size = rng:NextInteger(3, 6)
+    local alpha = rng:NextNumber(0.45, 0.75)
     local dot = Instance.new("Frame")
     dot.Size = UDim2.new(0, size, 0, size)
-    dot.Position = UDim2.new(0, rng:NextInteger(0, 580), 0, rng:NextInteger(0, 450))
+    dot.Position = UDim2.new(0, rng:NextInteger(0, CARD_W), 0, rng:NextInteger(0, CARD_H))
     dot.BackgroundColor3 = medBrown
     dot.BackgroundTransparency = alpha
     dot.BorderSizePixel = 0
     dot.ZIndex = 1
     dot.Parent = dotsContainer
-    local dotCorner = Instance.new("UICorner")
-    dotCorner.CornerRadius = UDim.new(1, 0)
-    dotCorner.Parent = dot
+    local dc = Instance.new("UICorner")
+    dc.CornerRadius = UDim.new(1, 0)
+    dc.Parent = dot
     table.insert(activeDots, {
         Frame = dot,
-        Speed = rng:NextNumber(15, 35),
-        Drift = rng:NextNumber(-8, 8),
+        Speed = rng:NextNumber(10, 25),
         XBase = dot.Position.X.Offset,
         YPos = dot.Position.Y.Offset
     })
 end
 
 RunService.RenderStepped:Connect(function(dt)
-    for _, dotData in ipairs(activeDots) do
-        dotData.YPos = dotData.YPos + (dotData.Speed * dt)
-        if dotData.YPos > 450 then
-            dotData.YPos = -10
-            dotData.XBase = rng:NextInteger(0, 580)
+    for _, d in ipairs(activeDots) do
+        d.YPos = d.YPos + (d.Speed * dt)
+        if d.YPos > CARD_H then
+            d.YPos = -8
+            d.XBase = rng:NextInteger(0, CARD_W)
         end
-        local driftOffset = math.sin(tick() + dotData.XBase) * 5
-        dotData.Frame.Position = UDim2.new(0, dotData.XBase + driftOffset, 0, dotData.YPos)
+        local drift = math.sin(tick() + d.XBase) * 3.5
+        d.Frame.Position = UDim2.new(0, d.XBase + drift, 0, d.YPos)
     end
 end)
 
+-- Header
 local header = Instance.new("Frame")
-header.Name = "Header"
-header.Size = UDim2.new(1, 0, 0, 140)
-header.Position = UDim2.new(0, 0, 0, 0)
+header.Size = UDim2.new(1, 0, 0, HEADER_H)
 header.BackgroundColor3 = medBrown
 header.BorderSizePixel = 0
 header.ZIndex = 2
 header.Parent = cardContainer
 
 local headerCorner = Instance.new("UICorner")
-headerCorner.CornerRadius = UDim.new(0, 24)
+headerCorner.CornerRadius = UDim.new(0, isMobile and 18 or 24)
 headerCorner.Parent = header
 
 local headerSquareFix = Instance.new("Frame")
-headerSquareFix.Size = UDim2.new(1, 0, 0, 20)
-headerSquareFix.Position = UDim2.new(0, 0, 1, -20)
+headerSquareFix.Size = UDim2.new(1, 0, 0, 16)
+headerSquareFix.Position = UDim2.new(0, 0, 1, -16)
 headerSquareFix.BackgroundColor3 = medBrown
 headerSquareFix.BorderSizePixel = 0
 headerSquareFix.ZIndex = 2
 headerSquareFix.Parent = header
 
 local headerBorderLine = Instance.new("Frame")
-headerBorderLine.Name = "HeaderBorderLine"
 headerBorderLine.Size = UDim2.new(1, 0, 0, 3)
-headerBorderLine.Position = UDim2.new(0, 0, 0, 140)
+headerBorderLine.Position = UDim2.new(0, 0, 0, HEADER_H)
 headerBorderLine.BackgroundColor3 = darkBrown
 headerBorderLine.BorderSizePixel = 0
 headerBorderLine.ZIndex = 5
 headerBorderLine.Parent = cardContainer
 
+local function applyTextGlow(textLabel, glowColor)
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = glowColor or medBrown
+    stroke.Thickness = 1.1
+    stroke.Transparency = 0.55
+    stroke.Parent = textLabel
+end
+
+local bigBannerPlaceholder = Instance.new("TextLabel")
+bigBannerPlaceholder.Size = UDim2.new(0, math.floor(230 * UI_SCALE), 0, math.floor(44 * UI_SCALE))
+bigBannerPlaceholder.Position = UDim2.new(0.5, -math.floor(115 * UI_SCALE), 0, isMobile and 6 or 10)
+bigBannerPlaceholder.BackgroundTransparency = 1
+bigBannerPlaceholder.Text = "🍮 livyii.main 🍮"
+bigBannerPlaceholder.TextColor3 = cream
+bigBannerPlaceholder.Font = customFont
+bigBannerPlaceholder.TextSize = isMobile and 18 or 24
+bigBannerPlaceholder.ZIndex = 4
+bigBannerPlaceholder.Parent = header
+applyTextGlow(bigBannerPlaceholder, cream)
+
+-- Nav tabs
 local navTabs = Instance.new("Frame")
-navTabs.Name = "NavTabs"
-navTabs.Size = UDim2.new(1, 0, 0, 50)
-navTabs.Position = UDim2.new(0, 0, 0, 78)
+navTabs.Size = UDim2.new(1, 0, 0, isMobile and 40 or 48)
+navTabs.Position = UDim2.new(0, 0, 0, isMobile and 56 or 76)
 navTabs.BackgroundTransparency = 1
 navTabs.ZIndex = 3
 navTabs.Parent = header
@@ -186,114 +374,103 @@ local navListLayout = Instance.new("UIListLayout")
 navListLayout.FillDirection = Enum.FillDirection.Horizontal
 navListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 navListLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-navListLayout.Padding = UDim.new(0, 10)
-navListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+navListLayout.Padding = UDim.new(0, isMobile and 5 or 8)
 navListLayout.Parent = navTabs
-
-local function applyTextGlow(textLabel, glowColor)
-    local stroke = Instance.new("UIStroke")
-    stroke.Color = glowColor or medBrown
-    stroke.Thickness = 1.2
-    stroke.Transparency = 0.6
-    stroke.Parent = textLabel
-end
-
--- PLACEHOLDER: Banner (pudding emoji)
-local bigBannerPlaceholder = Instance.new("TextLabel")
-bigBannerPlaceholder.Name = "BigBannerPlaceholder"
-bigBannerPlaceholder.Size = UDim2.new(0, 260, 0, 60)
-bigBannerPlaceholder.Position = UDim2.new(0.5, -130, 0, 10)
-bigBannerPlaceholder.BackgroundTransparency = 1
-bigBannerPlaceholder.Text = "🍮 livyii.main 🍮"
-bigBannerPlaceholder.TextColor3 = cream
-bigBannerPlaceholder.Font = customFont
-bigBannerPlaceholder.TextSize = 28
-bigBannerPlaceholder.ZIndex = 4
-bigBannerPlaceholder.Parent = header
-applyTextGlow(bigBannerPlaceholder, cream)
 
 local function createTabButton(name, text, iconText, layoutOrder)
     local btn = Instance.new("TextButton")
     btn.Name = name
-    btn.Size = UDim2.new(0, 100, 0, 44)
+    btn.Size = UDim2.new(0, isMobile and 74 or 96, 0, isMobile and 34 or 40)
     btn.LayoutOrder = layoutOrder
     btn.BackgroundColor3 = white
-    btn.BorderSizePixel = 2
-    btn.BorderColor3 = medBrown
+    btn.BorderSizePixel = 0
     btn.Text = iconText .. "\n" .. text
     btn.TextColor3 = darkBrown
     btn.Font = customFont
-    btn.TextSize = 16
+    btn.TextSize = isMobile and 11 or 13
     btn.AutoButtonColor = false
     btn.ZIndex = 4
     btn.Parent = navTabs
     applyTextGlow(btn, medBrown)
     local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 14)
+    corner.CornerRadius = UDim.new(0, isMobile and 10 or 12)
     corner.Parent = btn
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = medBrown
+    stroke.Thickness = 1.5
+    stroke.Parent = btn
     return btn
 end
 
-local tabHomepage = createTabButton("TabHomepage", "homepage", "🍮", 1)
-local tabCamlock = createTabButton("TabCamlock", "camlock", "🍮", 2)
-local tabZoomrate = createTabButton("TabZoomrate", "zoomrate", "🍮", 3)
-local tabSilentAim = createTabButton("TabSilentAim", "silent aim", "🍮", 4)
+local tabHomepage = createTabButton("TabHomepage", "home", "🍮", 1)
+local tabCamlock = createTabButton("TabCamlock", "cam", "🍮", 2)
+local tabZoomrate = createTabButton("TabZoomrate", "zoom", "🍮", 3)
+local tabSilentAim = createTabButton("TabSilentAim", "aim", "🍮", 4)
 
+-- Inner content
 local innerCube = Instance.new("Frame")
-innerCube.Name = "InnerCube"
-innerCube.Size = UDim2.new(1, -32, 1, -195)
-innerCube.Position = UDim2.new(0, 16, 0, 150)
+innerCube.Size = UDim2.new(1, isMobile and -16 or -28, 1, -(HEADER_H + (isMobile and 36 or 46)))
+innerCube.Position = UDim2.new(0, isMobile and 8 or 14, 0, HEADER_H + 6)
 innerCube.BackgroundColor3 = white
-innerCube.BorderSizePixel = 2
-innerCube.BorderColor3 = medBrown
+innerCube.BorderSizePixel = 0
 innerCube.ZIndex = 2
 innerCube.Parent = cardContainer
 
 local innerCubeCorner = Instance.new("UICorner")
-innerCubeCorner.CornerRadius = UDim.new(0, 20)
+innerCubeCorner.CornerRadius = UDim.new(0, isMobile and 12 or 16)
 innerCubeCorner.Parent = innerCube
 
+local innerStroke = Instance.new("UIStroke")
+innerStroke.Color = medBrown
+innerStroke.Thickness = 2
+innerStroke.Parent = innerCube
+
 local contentBody = Instance.new("Frame")
-contentBody.Name = "ContentBody"
-contentBody.Size = UDim2.new(1, -20, 1, -20)
-contentBody.Position = UDim2.new(0, 10, 0, 10)
+contentBody.Size = UDim2.new(1, -10, 1, -10)
+contentBody.Position = UDim2.new(0, 5, 0, 5)
 contentBody.BackgroundTransparency = 1
 contentBody.ZIndex = 3
 contentBody.Parent = innerCube
 
 local mainContent = Instance.new("Frame")
-mainContent.Name = "MainContent"
 mainContent.Size = UDim2.new(1, 0, 1, 0)
-mainContent.Position = UDim2.new(0, 0, 0, 0)
 mainContent.BackgroundTransparency = 1
 mainContent.ZIndex = 3
 mainContent.Parent = contentBody
 
 local createdPanels = {}
 
+-- UI Helpers
 local function createPillToggle(parent, nameText, posY, initialState, callback)
+    local h = isMobile and 32 or 34
     local toggleBtn = Instance.new("TextButton")
     toggleBtn.Name = nameText
-    toggleBtn.Size = UDim2.new(1, -10, 0, 36)
-    toggleBtn.Position = UDim2.new(0, 5, 0, posY)
+    toggleBtn.Size = UDim2.new(1, -6, 0, h)
+    toggleBtn.Position = UDim2.new(0, 3, 0, posY)
     toggleBtn.BackgroundColor3 = initialState and cream or white
-    toggleBtn.BorderSizePixel = 1
-    toggleBtn.BorderColor3 = medBrown
+    toggleBtn.BorderSizePixel = 0
     toggleBtn.Text = "  " .. nameText .. ": " .. (initialState and "ON" or "OFF")
     toggleBtn.TextColor3 = darkBrown
     toggleBtn.Font = customFont
-    toggleBtn.TextSize = 15
+    toggleBtn.TextSize = isMobile and 12 or 13
     toggleBtn.TextXAlignment = Enum.TextXAlignment.Left
     toggleBtn.AutoButtonColor = false
     toggleBtn.ZIndex = 5
     toggleBtn.Parent = parent
     applyTextGlow(toggleBtn, medBrown)
+
     local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 18)
+    corner.CornerRadius = UDim.new(0, 14)
     corner.Parent = toggleBtn
+
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = medBrown
+    stroke.Thickness = 1
+    stroke.Parent = toggleBtn
+
     local pillTrack = Instance.new("Frame")
-    pillTrack.Size = UDim2.new(0, 38, 0, 20)
-    pillTrack.Position = UDim2.new(1, -44, 0.5, -10)
+    pillTrack.Size = UDim2.new(0, 34, 0, 16)
+    pillTrack.Position = UDim2.new(1, -40, 0.5, -8)
     pillTrack.BackgroundColor3 = initialState and darkBrown or medBrown
     pillTrack.BorderSizePixel = 0
     pillTrack.ZIndex = 6
@@ -301,9 +478,10 @@ local function createPillToggle(parent, nameText, posY, initialState, callback)
     local trackCorner = Instance.new("UICorner")
     trackCorner.CornerRadius = UDim.new(1, 0)
     trackCorner.Parent = pillTrack
+
     local pillKnob = Instance.new("Frame")
-    pillKnob.Size = UDim2.new(0, 16, 0, 16)
-    pillKnob.Position = UDim2.new(initialState and 1 or 0, initialState and -18 or 2, 0.5, -8)
+    pillKnob.Size = UDim2.new(0, 12, 0, 12)
+    pillKnob.Position = UDim2.new(initialState and 1 or 0, initialState and -14 or 2, 0.5, -6)
     pillKnob.BackgroundColor3 = white
     pillKnob.BorderSizePixel = 0
     pillKnob.ZIndex = 7
@@ -314,49 +492,55 @@ local function createPillToggle(parent, nameText, posY, initialState, callback)
 
     toggleBtn.MouseButton1Click:Connect(function()
         initialState = not initialState
-        local twInfo = TweenInfo.new(0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+        local tw = TweenInfo.new(0.16, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
         if initialState then
             toggleBtn.Text = "  " .. nameText .. ": ON"
-            TweenService:Create(toggleBtn, twInfo, {BackgroundColor3 = cream}):Play()
-            TweenService:Create(pillTrack, twInfo, {BackgroundColor3 = darkBrown}):Play()
-            TweenService:Create(pillKnob, twInfo, {Position = UDim2.new(1, -18, 0.5, -8)}):Play()
+            TweenService:Create(toggleBtn, tw, {BackgroundColor3 = cream}):Play()
+            TweenService:Create(pillTrack, tw, {BackgroundColor3 = darkBrown}):Play()
+            TweenService:Create(pillKnob, tw, {Position = UDim2.new(1, -14, 0.5, -6)}):Play()
         else
             toggleBtn.Text = "  " .. nameText .. ": OFF"
-            TweenService:Create(toggleBtn, twInfo, {BackgroundColor3 = white}):Play()
-            TweenService:Create(pillTrack, twInfo, {BackgroundColor3 = medBrown}):Play()
-            TweenService:Create(pillKnob, twInfo, {Position = UDim2.new(0, 2, 0.5, -8)}):Play()
+            TweenService:Create(toggleBtn, tw, {BackgroundColor3 = white}):Play()
+            TweenService:Create(pillTrack, tw, {BackgroundColor3 = medBrown}):Play()
+            TweenService:Create(pillKnob, tw, {Position = UDim2.new(0, 2, 0.5, -6)}):Play()
         end
         callback(initialState)
     end)
+    return toggleBtn
 end
 
 local function createSliderDial(parent, nameText, posY, minVal, maxVal, defaultVal, callback, isFloat)
+    local h = isMobile and 38 or 40
     local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(1, -10, 0, 44)
-    frame.Position = UDim2.new(0, 5, 0, posY)
+    frame.Size = UDim2.new(1, -6, 0, h)
+    frame.Position = UDim2.new(0, 3, 0, posY)
     frame.BackgroundColor3 = white
-    frame.BorderSizePixel = 1
-    frame.BorderColor3 = medBrown
+    frame.BorderSizePixel = 0
     frame.ZIndex = 5
     frame.Parent = parent
     local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 16)
+    corner.CornerRadius = UDim.new(0, 10)
     corner.Parent = frame
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = medBrown
+    stroke.Thickness = 1
+    stroke.Parent = frame
+
     local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1, -20, 0, 20)
-    label.Position = UDim2.new(0, 10, 0, 2)
+    label.Size = UDim2.new(1, -12, 0, 14)
+    label.Position = UDim2.new(0, 6, 0, 2)
     label.BackgroundTransparency = 1
-    label.Text = nameText .. ": " .. (isFloat and string.format("%.3f", defaultVal) or tostring(defaultVal))
+    label.Text = nameText .. ": " .. (isFloat and string.format("%.2f", defaultVal) or tostring(defaultVal))
     label.TextColor3 = darkBrown
     label.Font = customFont
-    label.TextSize = 14
+    label.TextSize = isMobile and 11 or 12
     label.TextXAlignment = Enum.TextXAlignment.Left
     label.ZIndex = 6
     label.Parent = frame
-    applyTextGlow(label, medBrown)
+
     local trackBtn = Instance.new("TextButton")
-    trackBtn.Size = UDim2.new(1, -20, 0, 12)
-    trackBtn.Position = UDim2.new(0, 10, 0, 24)
+    trackBtn.Size = UDim2.new(1, -12, 0, 9)
+    trackBtn.Position = UDim2.new(0, 6, 0, 20)
     trackBtn.BackgroundColor3 = cream
     trackBtn.BorderSizePixel = 0
     trackBtn.Text = ""
@@ -366,6 +550,7 @@ local function createSliderDial(parent, nameText, posY, minVal, maxVal, defaultV
     local trackCorner = Instance.new("UICorner")
     trackCorner.CornerRadius = UDim.new(1, 0)
     trackCorner.Parent = trackBtn
+
     local fill = Instance.new("Frame")
     local startPct = math.clamp((defaultVal - minVal) / (maxVal - minVal), 0, 1)
     fill.Size = UDim2.new(startPct, 0, 1, 0)
@@ -376,9 +561,10 @@ local function createSliderDial(parent, nameText, posY, minVal, maxVal, defaultV
     local fillCorner = Instance.new("UICorner")
     fillCorner.CornerRadius = UDim.new(1, 0)
     fillCorner.Parent = fill
+
     local knob = Instance.new("Frame")
-    knob.Size = UDim2.new(0, 16, 0, 16)
-    knob.Position = UDim2.new(startPct, -8, 0.5, -8)
+    knob.Size = UDim2.new(0, 12, 0, 12)
+    knob.Position = UDim2.new(startPct, -6, 0.5, -6)
     knob.BackgroundColor3 = medBrown
     knob.BorderSizePixel = 0
     knob.ZIndex = 8
@@ -386,104 +572,114 @@ local function createSliderDial(parent, nameText, posY, minVal, maxVal, defaultV
     local knobCorner = Instance.new("UICorner")
     knobCorner.CornerRadius = UDim.new(1, 0)
     knobCorner.Parent = knob
-    local draggingSlider = false
-    local function updateSlider(input)
+
+    local dragging = false
+    local function update(input)
         local absPos = trackBtn.AbsolutePosition.X
         local absSize = trackBtn.AbsoluteSize.X
-        local mouseX = input.Position.X
-        local percent = math.clamp((mouseX - absPos) / absSize, 0, 1)
+        local percent = math.clamp((input.Position.X - absPos) / absSize, 0, 1)
         local val = minVal + (maxVal - minVal) * percent
         if isFloat then val = tonumber(string.format("%.3f", val)) else val = math.floor(val) end
         fill.Size = UDim2.new(percent, 0, 1, 0)
-        knob.Position = UDim2.new(percent, -8, 0.5, -8)
-        label.Text = nameText .. ": " .. (isFloat and string.format("%.3f", val) or tostring(val))
+        knob.Position = UDim2.new(percent, -6, 0.5, -6)
+        label.Text = nameText .. ": " .. (isFloat and string.format("%.2f", val) or tostring(val))
         callback(val)
     end
+
     trackBtn.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            draggingSlider = true
-            updateSlider(input)
+            dragging = true
+            update(input)
         end
     end)
     UserInputService.InputChanged:Connect(function(input)
-        if draggingSlider and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-            updateSlider(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            update(input)
         end
     end)
     UserInputService.InputEnded:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            draggingSlider = false
+            dragging = false
         end
     end)
 end
 
 local function createDropdown(parent, nameText, posY, options, currentVal, callback)
+    local h = isMobile and 32 or 34
     local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(1, -10, 0, 36)
-    frame.Position = UDim2.new(0, 5, 0, posY)
+    frame.Size = UDim2.new(1, -6, 0, h)
+    frame.Position = UDim2.new(0, 3, 0, posY)
     frame.BackgroundColor3 = white
-    frame.BorderSizePixel = 1
-    frame.BorderColor3 = medBrown
+    frame.BorderSizePixel = 0
     frame.ZIndex = 5
     frame.Parent = parent
     local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 16)
+    corner.CornerRadius = UDim.new(0, 10)
     corner.Parent = frame
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = medBrown
+    stroke.Thickness = 1
+    stroke.Parent = frame
+
     local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(0, 100, 0, 20)
-    label.Position = UDim2.new(0, 10, 0.5, -10)
+    label.Size = UDim2.new(0, isMobile and 72 or 85, 0, 16)
+    label.Position = UDim2.new(0, 6, 0.5, -8)
     label.BackgroundTransparency = 1
     label.Text = nameText
     label.TextColor3 = darkBrown
     label.Font = customFont
-    label.TextSize = 14
+    label.TextSize = isMobile and 11 or 12
     label.TextXAlignment = Enum.TextXAlignment.Left
     label.ZIndex = 6
     label.Parent = frame
-    applyTextGlow(label, medBrown)
+
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, -120, 0, 28)
-    btn.Position = UDim2.new(0, 110, 0.5, -14)
+    btn.Size = UDim2.new(1, isMobile and -88 or -100, 0, 24)
+    btn.Position = UDim2.new(0, isMobile and 80 or 92, 0.5, -12)
     btn.BackgroundColor3 = cream
-    btn.BorderSizePixel = 1
-    btn.BorderColor3 = medBrown
+    btn.BorderSizePixel = 0
     btn.Text = tostring(currentVal)
     btn.TextColor3 = darkBrown
     btn.Font = customFont
-    btn.TextSize = 13
+    btn.TextSize = 11
     btn.AutoButtonColor = false
     btn.ZIndex = 6
     btn.Parent = frame
-    local dropdownCorner = Instance.new("UICorner")
-    dropdownCorner.CornerRadius = UDim.new(0, 10)
-    dropdownCorner.Parent = btn
+    local btnCorner = Instance.new("UICorner")
+    btnCorner.CornerRadius = UDim.new(0, 7)
+    btnCorner.Parent = btn
+
     local dropdownContainer = Instance.new("Frame")
-    dropdownContainer.Size = UDim2.new(1, -120, 0, #options * 26)
-    dropdownContainer.Position = UDim2.new(0, 110, 0, 22)
+    dropdownContainer.Size = UDim2.new(1, isMobile and -88 or -100, 0, #options * 22)
+    dropdownContainer.Position = UDim2.new(0, isMobile and 80 or 92, 0, 26)
     dropdownContainer.BackgroundColor3 = white
-    dropdownContainer.BorderSizePixel = 1
-    dropdownContainer.BorderColor3 = medBrown
+    dropdownContainer.BorderSizePixel = 0
     dropdownContainer.Visible = false
     dropdownContainer.ZIndex = 20
     dropdownContainer.Parent = frame
-    local containerCorner = Instance.new("UICorner")
-    containerCorner.CornerRadius = UDim.new(0, 10)
-    containerCorner.Parent = dropdownContainer
+    local dc = Instance.new("UICorner")
+    dc.CornerRadius = UDim.new(0, 7)
+    dc.Parent = dropdownContainer
+    local ds = Instance.new("UIStroke")
+    ds.Color = medBrown
+    ds.Thickness = 1
+    ds.Parent = dropdownContainer
     local listLayout = Instance.new("UIListLayout")
-    listLayout.SortOrder = Enum.SortOrder.LayoutOrder
     listLayout.Parent = dropdownContainer
+
     btn.MouseButton1Click:Connect(function()
         dropdownContainer.Visible = not dropdownContainer.Visible
     end)
+
     for _, opt in ipairs(options) do
         local optBtn = Instance.new("TextButton")
-        optBtn.Size = UDim2.new(1, 0, 0, 24)
+        optBtn.Size = UDim2.new(1, 0, 0, 22)
         optBtn.BackgroundColor3 = white
         optBtn.BorderSizePixel = 0
         optBtn.Text = tostring(opt)
         optBtn.TextColor3 = darkBrown
         optBtn.Font = customFont
-        optBtn.TextSize = 12
+        optBtn.TextSize = 11
         optBtn.AutoButtonColor = false
         optBtn.ZIndex = 21
         optBtn.Parent = dropdownContainer
@@ -496,57 +692,60 @@ local function createDropdown(parent, nameText, posY, options, currentVal, callb
 end
 
 local function createKeybind(parent, nameText, posY, currentKey, callback)
+    if isMobile then return end
     local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(1, -10, 0, 36)
-    frame.Position = UDim2.new(0, 5, 0, posY)
+    frame.Size = UDim2.new(1, -6, 0, 34)
+    frame.Position = UDim2.new(0, 3, 0, posY)
     frame.BackgroundColor3 = white
-    frame.BorderSizePixel = 1
-    frame.BorderColor3 = medBrown
+    frame.BorderSizePixel = 0
     frame.ZIndex = 5
     frame.Parent = parent
     local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 16)
+    corner.CornerRadius = UDim.new(0, 10)
     corner.Parent = frame
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = medBrown
+    stroke.Thickness = 1
+    stroke.Parent = frame
+
     local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(0, 100, 0, 20)
-    label.Position = UDim2.new(0, 10, 0.5, -10)
+    label.Size = UDim2.new(0, 85, 0, 16)
+    label.Position = UDim2.new(0, 6, 0.5, -8)
     label.BackgroundTransparency = 1
     label.Text = nameText
     label.TextColor3 = darkBrown
     label.Font = customFont
-    label.TextSize = 14
+    label.TextSize = 12
     label.TextXAlignment = Enum.TextXAlignment.Left
     label.ZIndex = 6
     label.Parent = frame
-    applyTextGlow(label, medBrown)
+
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, -120, 0, 28)
-    btn.Position = UDim2.new(0, 110, 0.5, -14)
+    btn.Size = UDim2.new(1, -100, 0, 24)
+    btn.Position = UDim2.new(0, 92, 0.5, -12)
     btn.BackgroundColor3 = cream
-    btn.BorderSizePixel = 1
-    btn.BorderColor3 = medBrown
+    btn.BorderSizePixel = 0
     btn.Text = "[" .. tostring(currentKey) .. "]"
     btn.TextColor3 = darkBrown
     btn.Font = customFont
-    btn.TextSize = 13
+    btn.TextSize = 11
     btn.AutoButtonColor = false
     btn.ZIndex = 6
     btn.Parent = frame
     local btnCorner = Instance.new("UICorner")
-    btnCorner.CornerRadius = UDim.new(0, 10)
+    btnCorner.CornerRadius = UDim.new(0, 7)
     btnCorner.Parent = btn
+
     local listening = false
     btn.MouseButton1Click:Connect(function()
         listening = true
         btn.Text = "..."
     end)
-    UserInputService.InputBegan:Connect(function(input, gameProcessed)
-        if listening and not gameProcessed then
-            if input.UserInputType == Enum.UserInputType.Keyboard then
-                listening = false
-                btn.Text = "[" .. input.KeyCode.Name .. "]"
-                callback(input.KeyCode.Name)
-            end
+    UserInputService.InputBegan:Connect(function(input, gp)
+        if listening and not gp and input.UserInputType == Enum.UserInputType.Keyboard then
+            listening = false
+            btn.Text = "[" .. input.KeyCode.Name .. "]"
+            callback(input.KeyCode.Name)
         end
     end)
 end
@@ -555,174 +754,174 @@ local function createTabPanel(name, title, subtitle)
     local panel = Instance.new("Frame")
     panel.Name = name
     panel.Size = UDim2.new(1, 0, 1, 0)
-    panel.Position = UDim2.new(0, 0, 0, 0)
     panel.BackgroundColor3 = white
-    panel.BorderSizePixel = 2
-    panel.BorderColor3 = medBrown
+    panel.BorderSizePixel = 0
     panel.Visible = false
     panel.BackgroundTransparency = 1
     panel.ZIndex = 3
     panel.Parent = mainContent
     local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 20)
+    corner.CornerRadius = UDim.new(0, 12)
     corner.Parent = panel
+
     local panelHeader = Instance.new("Frame")
-    panelHeader.Size = UDim2.new(1, -16, 0, 34)
-    panelHeader.Position = UDim2.new(0, 8, 0, 8)
+    panelHeader.Size = UDim2.new(1, -10, 0, isMobile and 26 or 30)
+    panelHeader.Position = UDim2.new(0, 5, 0, 5)
     panelHeader.BackgroundColor3 = medBrown
     panelHeader.BorderSizePixel = 0
     panelHeader.ZIndex = 4
     panelHeader.Parent = panel
-    local headerCorner = Instance.new("UICorner")
-    headerCorner.CornerRadius = UDim.new(0, 10)
-    headerCorner.Parent = panelHeader
+    local hc = Instance.new("UICorner")
+    hc.CornerRadius = UDim.new(0, 7)
+    hc.Parent = panelHeader
+
     local titleLabel = Instance.new("TextLabel")
-    titleLabel.Size = UDim2.new(1, 0, 0.55, 0)
-    titleLabel.Position = UDim2.new(0, 0, 0, 2)
+    titleLabel.Size = UDim2.new(1, 0, 0.6, 0)
+    titleLabel.Position = UDim2.new(0, 0, 0, 1)
     titleLabel.BackgroundTransparency = 1
     titleLabel.Text = title
     titleLabel.TextColor3 = white
     titleLabel.Font = customFont
-    titleLabel.TextSize = 16
+    titleLabel.TextSize = isMobile and 12 or 14
     titleLabel.ZIndex = 5
     titleLabel.Parent = panelHeader
-    applyTextGlow(titleLabel, white)
+
     local subtitleLabel = Instance.new("TextLabel")
-    subtitleLabel.Size = UDim2.new(1, 0, 0.45, 0)
-    subtitleLabel.Position = UDim2.new(0, 0, 0.5, -2)
+    subtitleLabel.Size = UDim2.new(1, 0, 0.4, 0)
+    subtitleLabel.Position = UDim2.new(0, 0, 0.55, 0)
     subtitleLabel.BackgroundTransparency = 1
     subtitleLabel.Text = subtitle
     subtitleLabel.TextColor3 = cream
     subtitleLabel.Font = customFont
-    subtitleLabel.TextSize = 11
+    subtitleLabel.TextSize = isMobile and 9 or 10
     subtitleLabel.ZIndex = 5
     subtitleLabel.Parent = panelHeader
-    applyTextGlow(subtitleLabel, cream)
+
     local scrollFrame = Instance.new("ScrollingFrame")
     scrollFrame.Name = "ScrollArea"
-    scrollFrame.Size = UDim2.new(1, -16, 1, -54)
-    scrollFrame.Position = UDim2.new(0, 8, 0, 46)
+    scrollFrame.Size = UDim2.new(1, -10, 1, isMobile and -38 or -42)
+    scrollFrame.Position = UDim2.new(0, 5, 0, isMobile and 34 or 38)
     scrollFrame.BackgroundTransparency = 1
     scrollFrame.BorderSizePixel = 0
-    scrollFrame.ScrollBarThickness = 4
+    scrollFrame.ScrollBarThickness = isMobile and 3 or 4
     scrollFrame.ScrollBarImageColor3 = darkBrown
-    scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 1200)
+    scrollFrame.CanvasSize = UDim2.new(0, 0, 0, isMobile and 800 or 1100)
     scrollFrame.ZIndex = 4
     scrollFrame.Parent = panel
+
     createdPanels[name] = panel
     return panel, scrollFrame
 end
 
+-- Homepage
 local panelHomepage = Instance.new("Frame")
 panelHomepage.Name = "PanelHomepage"
 panelHomepage.Size = UDim2.new(1, 0, 1, 0)
-panelHomepage.Position = UDim2.new(0, 0, 0, 0)
 panelHomepage.BackgroundColor3 = white
-panelHomepage.BorderSizePixel = 2
-panelHomepage.BorderColor3 = medBrown
+panelHomepage.BorderSizePixel = 0
 panelHomepage.Visible = true
 panelHomepage.BackgroundTransparency = 1
 panelHomepage.ZIndex = 3
 panelHomepage.Parent = mainContent
 
-TweenService:Create(panelHomepage, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 0}):Play()
-
 local homepageCorner = Instance.new("UICorner")
-homepageCorner.CornerRadius = UDim.new(0, 20)
+homepageCorner.CornerRadius = UDim.new(0, 12)
 homepageCorner.Parent = panelHomepage
 
 local welcomeText = Instance.new("TextLabel")
-welcomeText.Name = "WelcomeText"
-welcomeText.Size = UDim2.new(0, 320, 0, 60)
-welcomeText.Position = UDim2.new(0.5, -160, 0.15, -30)
+welcomeText.Size = UDim2.new(0.9, 0, 0, 48)
+welcomeText.Position = UDim2.new(0.05, 0, 0.1, 0)
 welcomeText.BackgroundTransparency = 1
-welcomeText.Text = "welcome to livyii.main 🍮 pompompurin vibes only :)"
+welcomeText.Text = isMobile and "livyii.main 🍮\nmobile optimized" or "welcome to livyii.main 🍮\npompompurin vibes only"
 welcomeText.TextColor3 = darkBrown
 welcomeText.Font = customFont
-welcomeText.TextSize = 24
+welcomeText.TextSize = isMobile and 15 or 18
 welcomeText.TextWrapped = true
 welcomeText.ZIndex = 6
 welcomeText.Parent = panelHomepage
 applyTextGlow(welcomeText, medBrown)
 
--- PLACEHOLDER: Homepage character (pudding emoji)
 local homepagePlaceholder = Instance.new("TextLabel")
-homepagePlaceholder.Name = "HomepagePlaceholder"
-homepagePlaceholder.Size = UDim2.new(0, 180, 0, 180)
-homepagePlaceholder.Position = UDim2.new(0.5, -90, 0.65, -90)
+homepagePlaceholder.Size = UDim2.new(0, isMobile and 110 or 150, 0, isMobile and 110 or 150)
+homepagePlaceholder.Position = UDim2.new(0.5, isMobile and -55 or -75, 0.52, isMobile and -55 or -75)
 homepagePlaceholder.BackgroundTransparency = 1
 homepagePlaceholder.Text = "🍮"
 homepagePlaceholder.TextColor3 = medBrown
 homepagePlaceholder.Font = customFont
-homepagePlaceholder.TextSize = 120
+homepagePlaceholder.TextSize = isMobile and 80 or 110
 homepagePlaceholder.ZIndex = 4
 homepagePlaceholder.Parent = panelHomepage
 
 createdPanels["PanelHomepage"] = panelHomepage
 
-local panelCamlock, scrollCamlock = createTabPanel("PanelCamlock", "camlock", "settings & info")
-local panelZoomrate, scrollZoomrate = createTabPanel("PanelZoomrate", "zoomrate", "zoom level control")
-local panelSilentAim, scrollSilentAim = createTabPanel("PanelSilentAim", "silent aim", "targeting assistance")
+local panelCamlock, scrollCamlock = createTabPanel("PanelCamlock", "camlock", "settings")
+local panelZoomrate, scrollZoomrate = createTabPanel("PanelZoomrate", "zoomrate", "control")
+local panelSilentAim, scrollSilentAim = createTabPanel("PanelSilentAim", "silent aim", "targeting")
 
-createPillToggle(scrollSilentAim, "Silent Aim", 6, _G.SilentAimEnabled, function(v) _G.SilentAimEnabled = v end)
-createPillToggle(scrollSilentAim, "Show FOV", 48, _G.ShowFOV, function(v) _G.ShowFOV = v end)
-createPillToggle(scrollSilentAim, "Revolver Bypass", 90, _G.RevolverBypass, function(v) _G.RevolverBypass = v end)
-createPillToggle(scrollSilentAim, "Wall Check", 132, _G.WallCheck, function(v) _G.WallCheck = v end)
-createPillToggle(scrollSilentAim, "Knock Check", 174, _G.KnockCheck, function(v) _G.KnockCheck = v end)
-createSliderDial(scrollSilentAim, "FOV Radius", 216, 10, 1000, _G.FOV_RADIUS, function(v) _G.FOV_RADIUS = v end)
-createSliderDial(scrollSilentAim, "Bullet Spread", 266, 0, 100, _G.BulletSpreadAmount, function(v) _G.BulletSpreadAmount = v end)
-createDropdown(scrollSilentAim, "Hit Part", 316, AllHitPartOptions, aimPart, function(v) aimPart = v end)
+-- Silent Aim panel
+createPillToggle(scrollSilentAim, "Silent Aim", 4, _G.SilentAimEnabled, function(v) _G.SilentAimEnabled = v end)
+createPillToggle(scrollSilentAim, "Show FOV", 40, _G.ShowFOV, function(v) _G.ShowFOV = v end)
+createPillToggle(scrollSilentAim, "Revolver Bypass", 76, _G.RevolverBypass, function(v) _G.RevolverBypass = v end)
+createPillToggle(scrollSilentAim, "Wall Check", 112, _G.WallCheck, function(v) _G.WallCheck = v end)
+createPillToggle(scrollSilentAim, "Closest Part", 148, _G.SilentAimClosestPart, function(v) _G.SilentAimClosestPart = v end)
+createSliderDial(scrollSilentAim, "FOV Radius", 184, 20, 600, _G.FOV_RADIUS, function(v) _G.FOV_RADIUS = v end)
+createSliderDial(scrollSilentAim, "Hit Chance", 228, 1, 100, _G.SilentAimHitChance, function(v) _G.SilentAimHitChance = v end)
+createSliderDial(scrollSilentAim, "Max Distance", 272, 50, 3000, _G.SilentAimMaxDist, function(v) _G.SilentAimMaxDist = v end)
+createDropdown(scrollSilentAim, "Hit Part", 316, AllHitPartOptions, _G.SilentAimPart, function(v) _G.SilentAimPart = v end)
+createSliderDial(scrollSilentAim, "Pred X", 360, 0, 0.2, _G.SilentAimPredX, function(v) _G.SilentAimPredX = v end, true)
+createSliderDial(scrollSilentAim, "Pred Y", 404, 0, 0.2, _G.SilentAimPredY, function(v) _G.SilentAimPredY = v end, true)
 
-createPillToggle(scrollCamlock, "Camlock", 6, _G.CamlockEnabled, function(v) _G.CamlockEnabled = v if not v then DisableCamlock() end end)
-createPillToggle(scrollCamlock, "Auto Toggle", 48, _G.CamlockAutoToggle, function(v) _G.CamlockAutoToggle = v end)
-createPillToggle(scrollCamlock, "Use RMB", 90, _G.CamlockUseRMB, function(v) _G.CamlockUseRMB = v end)
-createKeybind(scrollCamlock, "Toggle Key", 132, _G.CamlockToggleKey, function(k) _G.CamlockToggleKey = k end)
-createDropdown(scrollCamlock, "Mode", 174, {"Hold", "Toggle"}, _G.CamlockMode, function(v) _G.CamlockMode = v DisableCamlock() end)
-createDropdown(scrollCamlock, "Hit Part", 216, AllHitPartOptions, _G.CamlockHitPart, function(v) _G.CamlockHitPart = v end)
-createDropdown(scrollCamlock, "CP Mode", 258, {"Default", "Basic"}, _G.CamlockClosestPointMode, function(v) _G.CamlockClosestPointMode = v end)
-createSliderDial(scrollCamlock, "CP Scale", 300, 0, 1, _G.CamlockClosestPointScale, function(v) _G.CamlockClosestPointScale = v end, true)
-createSliderDial(scrollCamlock, "FOV Radius", 350, 0, 1000, _G.CamlockFOVRadius, function(v) _G.CamlockFOVRadius = v end)
-createSliderDial(scrollCamlock, "Max Distance", 400, 0, 100000, _G.CamlockMaxDistance, function(v) _G.CamlockMaxDistance = v end)
-createDropdown(scrollCamlock, "Easing Style", 450, {"Linear", "Quad", "Sine", "Back", "Elastic", "Bounce"}, _G.CamlockEasingStyle, function(v) _G.CamlockEasingStyle = v end)
-createDropdown(scrollCamlock, "Easing Dir", 492, {"In", "Out", "InOut"}, _G.CamlockEasingDirection, function(v) _G.CamlockEasingDirection = v end)
-createSliderDial(scrollCamlock, "Smoothness", 534, 0, 1, _G.CamlockSmoothness, function(v) _G.CamlockSmoothness = v end, true)
-createPillToggle(scrollCamlock, "Pull Strength", 584, _G.CamlockPullStrengthEnabled, function(v) _G.CamlockPullStrengthEnabled = v end)
-createSliderDial(scrollCamlock, "Pull Base", 626, 0.001, 0.2, _G.CamlockPullStrengthBaseValue, function(v) _G.CamlockPullStrengthBaseValue = v end, true)
-createSliderDial(scrollCamlock, "Pull Move", 676, 0.001, 0.2, _G.CamlockPullStrengthMoveValue, function(v) _G.CamlockPullStrengthMoveValue = v end, true)
-createPillToggle(scrollCamlock, "Prediction", 726, _G.CamlockPredictionEnabled, function(v) _G.CamlockPredictionEnabled = v end)
-createSliderDial(scrollCamlock, "Pred X", 768, 0.001, 0.1, _G.CamlockPredictionX, function(v) _G.CamlockPredictionX = v end, true)
-createSliderDial(scrollCamlock, "Pred Y", 818, 0.001, 0.1, _G.CamlockPredictionY, function(v) _G.CamlockPredictionY = v end, true)
-createSliderDial(scrollCamlock, "Pred Z", 868, 0.001, 0.1, _G.CamlockPredictionZ, function(v) _G.CamlockPredictionZ = v end, true)
-createPillToggle(scrollCamlock, "FF Check", 918, _G.CamlockConditionsForceField, function(v) _G.CamlockConditionsForceField = v end)
-createPillToggle(scrollCamlock, "Vis Check", 960, _G.CamlockConditionsVisible, function(v) _G.CamlockConditionsVisible = v end)
-createPillToggle(scrollCamlock, "Carried Check", 1002, _G.CamlockConditionsCarried, function(v) _G.CamlockConditionsCarried = v end)
-createPillToggle(scrollCamlock, "Knocked Check", 1044, _G.CamlockConditionsKnocked, function(v) _G.CamlockConditionsKnocked = v end)
-createPillToggle(scrollCamlock, "Self KO Check", 1086, _G.CamlockConditionsSelfKnocked, function(v) _G.CamlockConditionsSelfKnocked = v end)
+-- Camlock panel + Mobile circle button reference
+local mobileLockBtn = nil
 
-createPillToggle(scrollZoomrate, "Zoomrate", 6, _G.ZoomRateEnabled, function(v) _G.ZoomRateEnabled = v end)
-createPillToggle(scrollZoomrate, "Only When Camlocked", 48, _G.ZoomOnlyWhenCamlocked, function(v) _G.ZoomOnlyWhenCamlocked = v end)
-createSliderDial(scrollZoomrate, "Zoom Speed", 90, 1, 30, _G.ZoomSpeed, function(v) _G.ZoomSpeed = v end)
-createSliderDial(scrollZoomrate, "Zoom Min", 140, 1, 20, _G.ZoomMin, function(v) _G.ZoomMin = v end)
-createSliderDial(scrollZoomrate, "Zoom Max", 190, 5, 50, _G.ZoomMax, function(v) _G.ZoomMax = v end)
-createSliderDial(scrollZoomrate, "Stay Min", 240, 0.1, 3, _G.ZoomStayMin, function(v) _G.ZoomStayMin = v end, true)
-createSliderDial(scrollZoomrate, "Stay Max", 290, 0.1, 3, _G.ZoomStayMax, function(v) _G.ZoomStayMax = v end, true)
-createSliderDial(scrollZoomrate, "Frequency", 340, 0.5, 10, _G.ZoomFrequency, function(v) _G.ZoomFrequency = v end, true)
+createPillToggle(scrollCamlock, "Camlock", 4, _G.CamlockEnabled, function(v)
+    _G.CamlockEnabled = v
+    if not v then
+        DisableCamlock()
+        if mobileLockBtn then mobileLockBtn.Visible = false end
+    else
+        if isMobile and mobileLockBtn then
+            mobileLockBtn.Visible = true
+        end
+    end
+end)
 
+if isPC then
+    createPillToggle(scrollCamlock, "Auto Toggle", 40, _G.CamlockAutoToggle, function(v) _G.CamlockAutoToggle = v end)
+    createPillToggle(scrollCamlock, "Use RMB", 76, _G.CamlockUseRMB, function(v) _G.CamlockUseRMB = v end)
+    createKeybind(scrollCamlock, "Toggle Key", 112, _G.CamlockToggleKey, function(k) _G.CamlockToggleKey = k end)
+    createDropdown(scrollCamlock, "Mode", 148, {"Hold", "Toggle"}, _G.CamlockMode, function(v) _G.CamlockMode = v DisableCamlock() end)
+end
+
+local camY = isMobile and 40 or 190
+createDropdown(scrollCamlock, "Hit Part", camY, AllHitPartOptions, _G.CamlockHitPart, function(v) _G.CamlockHitPart = v end)
+createSliderDial(scrollCamlock, "FOV Radius", camY + 44, 0, 1000, _G.CamlockFOVRadius, function(v) _G.CamlockFOVRadius = v end)
+createSliderDial(scrollCamlock, "Smoothness", camY + 88, 0, 1, _G.CamlockSmoothness, function(v) _G.CamlockSmoothness = v end, true)
+createDropdown(scrollCamlock, "Easing", camY + 132, {"Linear", "Quad", "Sine", "Back"}, _G.CamlockEasingStyle, function(v) _G.CamlockEasingStyle = v end)
+createPillToggle(scrollCamlock, "Prediction", camY + 176, _G.CamlockPredictionEnabled, function(v) _G.CamlockPredictionEnabled = v end)
+
+-- Zoom panel
+createPillToggle(scrollZoomrate, "Zoomrate", 4, _G.ZoomRateEnabled, function(v) _G.ZoomRateEnabled = v end)
+createPillToggle(scrollZoomrate, "Only Camlocked", 40, _G.ZoomOnlyWhenCamlocked, function(v) _G.ZoomOnlyWhenCamlocked = v end)
+createSliderDial(scrollZoomrate, "Zoom Speed", 76, 1, 30, _G.ZoomSpeed, function(v) _G.ZoomSpeed = v end)
+createSliderDial(scrollZoomrate, "Zoom Min", 120, 1, 20, _G.ZoomMin, function(v) _G.ZoomMin = v end)
+createSliderDial(scrollZoomrate, "Zoom Max", 164, 5, 50, _G.ZoomMax, function(v) _G.ZoomMax = v end)
+
+-- Footer
 local footer = Instance.new("Frame")
-footer.Name = "Footer"
-footer.Size = UDim2.new(1, 0, 0, 35)
-footer.Position = UDim2.new(0, 0, 1, -35)
+footer.Size = UDim2.new(1, 0, 0, isMobile and 26 or 30)
+footer.Position = UDim2.new(0, 0, 1, isMobile and -26 or -30)
 footer.BackgroundColor3 = medBrown
 footer.BorderSizePixel = 0
 footer.ZIndex = 2
 footer.Parent = cardContainer
 
 local footerCorner = Instance.new("UICorner")
-footerCorner.CornerRadius = UDim.new(0, 24)
+footerCorner.CornerRadius = UDim.new(0, isMobile and 18 or 24)
 footerCorner.Parent = footer
 
 local footerSquareFix = Instance.new("Frame")
-footerSquareFix.Size = UDim2.new(1, 0, 0, 20)
+footerSquareFix.Size = UDim2.new(1, 0, 0, 12)
 footerSquareFix.Position = UDim2.new(0, 0, 0, 0)
 footerSquareFix.BackgroundColor3 = medBrown
 footerSquareFix.BorderSizePixel = 0
@@ -730,46 +929,104 @@ footerSquareFix.ZIndex = 2
 footerSquareFix.Parent = footer
 
 local footerBadge = Instance.new("TextLabel")
-footerBadge.Size = UDim2.new(0, 140, 0, 22)
-footerBadge.Position = UDim2.new(0.5, -70, 0.5, -11)
+footerBadge.Size = UDim2.new(0, 120, 0, 18)
+footerBadge.Position = UDim2.new(0.5, -60, 0.5, -9)
 footerBadge.BackgroundColor3 = white
-footerBadge.BorderSizePixel = 1
-footerBadge.BorderColor3 = darkBrown
+footerBadge.BorderSizePixel = 0
 footerBadge.Text = "livyii.main 🍮"
 footerBadge.TextColor3 = darkBrown
 footerBadge.Font = customFont
-footerBadge.TextSize = 13
+footerBadge.TextSize = isMobile and 10 or 11
 footerBadge.ZIndex = 4
 footerBadge.Parent = footer
-applyTextGlow(footerBadge, darkBrown)
+local bc = Instance.new("UICorner")
+bc.CornerRadius = UDim.new(0, 9)
+bc.Parent = footerBadge
+local bs = Instance.new("UIStroke")
+bs.Color = darkBrown
+bs.Thickness = 1
+bs.Parent = footerBadge
 
-local badgeCorner = Instance.new("UICorner")
-badgeCorner.CornerRadius = UDim.new(0, 12)
-badgeCorner.Parent = footerBadge
+-- ===================== MOBILE CAMLOCK CIRCLE BUTTON =====================
+if isMobile then
+    mobileLockBtn = Instance.new("TextButton")
+    mobileLockBtn.Name = "MobileCamlockBtn"
+    mobileLockBtn.Size = UDim2.new(0, 60, 0, 60)
+    mobileLockBtn.Position = UDim2.new(1, -76, 0.55, -30)
+    mobileLockBtn.BackgroundColor3 = medBrown
+    mobileLockBtn.BorderSizePixel = 0
+    mobileLockBtn.Text = "🍮"
+    mobileLockBtn.TextColor3 = cream
+    mobileLockBtn.Font = customFont
+    mobileLockBtn.TextSize = 26
+    mobileLockBtn.Visible = false
+    mobileLockBtn.ZIndex = 50
+    mobileLockBtn.Parent = screenGui
 
+    local mCorner = Instance.new("UICorner")
+    mCorner.CornerRadius = UDim.new(1, 0)
+    mCorner.Parent = mobileLockBtn
+
+    local mStroke = Instance.new("UIStroke")
+    mStroke.Color = darkBrown
+    mStroke.Thickness = 3
+    mStroke.Parent = mobileLockBtn
+
+    local mDragging = false
+    local mDragStart, mStartPos
+    mobileLockBtn.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+            mDragging = true
+            mDragStart = input.Position
+            mStartPos = mobileLockBtn.Position
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if mDragging and (input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseMovement) then
+            local delta = input.Position - mDragStart
+            mobileLockBtn.Position = UDim2.new(mStartPos.X.Scale, mStartPos.X.Offset + delta.X, mStartPos.Y.Scale, mStartPos.Y.Offset + delta.Y)
+        end
+    end)
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+            mDragging = false
+        end
+    end)
+
+    mobileLockBtn.MouseButton1Click:Connect(function()
+        if not _G.CamlockEnabled then return end
+        if Camlock and Camlock.Active then
+            DisableCamlock()
+            mobileLockBtn.BackgroundColor3 = medBrown
+            mobileLockBtn.Text = "🍮"
+        else
+            EnableCamlock()
+            if Camlock and Camlock.Active then
+                mobileLockBtn.BackgroundColor3 = darkBrown
+                mobileLockBtn.Text = "🔒"
+            end
+        end
+    end)
+end
+
+-- Tab switching
 local currentActivePanel = panelHomepage
 local isSwitching = false
 
-local function setPanelTransparency(panel, bgTransparency, textTransparency)
-    local tweenInfo = TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-    TweenService:Create(panel, tweenInfo, {BackgroundTransparency = bgTransparency}):Play()
-    for _, desc in ipairs(panel:GetDescendants()) do
-        if desc:IsA("Frame") then
-            TweenService:Create(desc, tweenInfo, {BackgroundTransparency = bgTransparency}):Play()
-        elseif desc:IsA("TextLabel") or desc:IsA("TextButton") then
-            TweenService:Create(desc, tweenInfo, {TextTransparency = textTransparency}):Play()
-        end
+local function setPanelTransparency(panel, bgT, textT)
+    local tw = TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    TweenService:Create(panel, tw, {BackgroundTransparency = bgT}):Play()
+    for _, d in ipairs(panel:GetDescendants()) do
+        if d:IsA("Frame") then TweenService:Create(d, tw, {BackgroundTransparency = bgT}):Play()
+        elseif d:IsA("TextLabel") or d:IsA("TextButton") then TweenService:Create(d, tw, {TextTransparency = textT}):Play() end
     end
 end
 
-local function setInstantTransparency(panel, bgTransparency, textTransparency)
-    panel.BackgroundTransparency = bgTransparency
-    for _, desc in ipairs(panel:GetDescendants()) do
-        if desc:IsA("Frame") then
-            desc.BackgroundTransparency = bgTransparency
-        elseif desc:IsA("TextLabel") or desc:IsA("TextButton") then
-            desc.TextTransparency = textTransparency
-        end
+local function setInstantTransparency(panel, bgT, textT)
+    panel.BackgroundTransparency = bgT
+    for _, d in ipairs(panel:GetDescendants()) do
+        if d:IsA("Frame") then d.BackgroundTransparency = bgT
+        elseif d:IsA("TextLabel") or d:IsA("TextButton") then d.TextTransparency = textT end
     end
 end
 
@@ -783,14 +1040,14 @@ local function animateTabSwitch(targetPanel, targetButton)
     targetButton.BackgroundColor3 = white
     if currentActivePanel then
         setPanelTransparency(currentActivePanel, 1, 1)
-        task.wait(0.25)
+        task.wait(0.16)
         currentActivePanel.Visible = false
     end
     setInstantTransparency(targetPanel, 1, 1)
     targetPanel.Visible = true
     setPanelTransparency(targetPanel, 0, 0)
     currentActivePanel = targetPanel
-    task.delay(0.25, function() isSwitching = false end)
+    task.delay(0.16, function() isSwitching = false end)
 end
 
 tabHomepage.MouseButton1Click:Connect(function() animateTabSwitch(panelHomepage, tabHomepage) end)
@@ -801,8 +1058,8 @@ tabSilentAim.MouseButton1Click:Connect(function() animateTabSwitch(panelSilentAi
 setInstantTransparency(panelHomepage, 0, 0)
 panelHomepage.Visible = true
 tabHomepage.BackgroundColor3 = white
-currentActivePanel = panelHomepage
 
+-- ===================== CAMLOCK LOGIC =====================
 local function isKnocked(character)
     local bodyEffects = character:FindFirstChild("BodyEffects")
     if bodyEffects and bodyEffects:FindFirstChild("K.O") then return bodyEffects["K.O"].Value end
@@ -810,21 +1067,13 @@ local function isKnocked(character)
 end
 
 local function IsGrabbed(player)
-    return player and player.Character and player.Character:FindFirstChild('GRABBING_CONSTRAINT') ~= nil
+    return player and player.Character and player.Character:FindFirstChild("GRABBING_CONSTRAINT") ~= nil
 end
 
 local function getClosestPartToMouse(char)
     local m = UserInputService:GetMouseLocation()
     local nearestPart, nearestDist = nil, math.huge
-    local parts = {
-        "Head", "UpperTorso", "LowerTorso",
-        "LeftUpperArm", "LeftLowerArm", "LeftHand",
-        "RightUpperArm", "RightLowerArm", "RightHand",
-        "LeftUpperLeg", "LeftLowerLeg", "LeftFoot",
-        "RightUpperLeg", "RightLowerLeg", "RightFoot",
-        "HumanoidRootPart"
-    }
-    for _, name in ipairs(parts) do
+    for _, name in ipairs(bodyPartsList) do
         local part = char:FindFirstChild(name)
         if part then
             local screenPos, onScreen = cam:WorldToViewportPoint(part.Position)
@@ -837,146 +1086,13 @@ local function getClosestPartToMouse(char)
     return nearestPart
 end
 
-local function getTargetPosition(player, character)
-    if not character then return nil end
-    if _G.KnockCheck and isKnocked(character) then return nil end
-    if aimPart == "Closest Point" then
-        local part = getClosestPartToMouse(character)
-        if part then return part.Position end
-    else
-        local part = character:FindFirstChild(aimPart) or character:FindFirstChild("HumanoidRootPart")
-        if part then return part.Position end
-    end
-    return nil
-end
-
-local function getClosest()
-    local mousePos = Vector2.new(mouse.X, mouse.Y)
-    local best, bestDist = nil, _G.FOV_RADIUS
-    for _, v in pairs(Players:GetPlayers()) do
-        if v == Player or (_G.Whitelist and _G.Whitelist[v.UserId]) then continue end
-        local char = v.Character
-        if not char then continue end
-        local targetPos = getTargetPosition(v, char)
-        if not targetPos then continue end
-        local screenPos, onScreen = cam:WorldToScreenPoint(targetPos)
-        if onScreen then
-            local dist = (Vector2.new(screenPos.X, screenPos.Y) - mousePos).Magnitude
-            if dist < bestDist then
-                if _G.WallCheck then
-                    local ray = Ray.new(cam.CFrame.Position, (targetPos - cam.CFrame.Position).Unit * 500)
-                    local hit, _ = workspace:FindPartOnRayWithIgnoreList(ray, {Player.Character, cam})
-                    if hit and hit:IsDescendantOf(char) then bestDist = dist; best = targetPos end
-                else
-                    bestDist = dist; best = targetPos
-                end
-            end
-        end
-    end
-    return best
-end
-
-local handler, oldFunc = nil, nil
-pcall(function()
-    local modules = ReplicatedStorage:FindFirstChild("Modules")
-    if modules then
-        local gunHandler = modules:FindFirstChild("GunHandler")
-        if gunHandler then
-            handler = require(gunHandler)
-            if handler and handler.getAim then oldFunc = handler.getAim end
-        end
-    end
-end)
-
-if handler and oldFunc then
-    handler.getAim = function(origin, maxDist)
-        if not _G.SilentAimEnabled then return oldFunc(origin, maxDist) end
-        if _G.RevolverBypass then
-            local tool = Player.Character and Player.Character:FindFirstChildOfClass("Tool")
-            if tool and (tool.Name == "[Revolver]" or tool.Name == "Revolver") then return oldFunc(origin, maxDist) end
-        end
-        local targetPos = getClosest()
-        if targetPos then return (targetPos - origin).Unit, math.min((targetPos - origin).Magnitude, maxDist or 200) end
-        return oldFunc(origin, maxDist)
-    end
-end
-
-local function getKeyCode(keyName)
-    local keyMap = {
-        A = Enum.KeyCode.A, B = Enum.KeyCode.B, C = Enum.KeyCode.C,
-        D = Enum.KeyCode.D, E = Enum.KeyCode.E, F = Enum.KeyCode.F,
-        G = Enum.KeyCode.G, H = Enum.KeyCode.H, I = Enum.KeyCode.I,
-        J = Enum.KeyCode.J, K = Enum.KeyCode.K, L = Enum.KeyCode.L,
-        M = Enum.KeyCode.M, N = Enum.KeyCode.N, O = Enum.KeyCode.O,
-        P = Enum.KeyCode.P, Q = Enum.KeyCode.Q, R = Enum.KeyCode.R,
-        S = Enum.KeyCode.S, T = Enum.KeyCode.T, U = Enum.KeyCode.U,
-        V = Enum.KeyCode.V, W = Enum.KeyCode.W, X = Enum.KeyCode.X,
-        Y = Enum.KeyCode.Y, Z = Enum.KeyCode.Z,
-    }
-    return keyMap[keyName] or Enum.KeyCode[keyName] or Enum.KeyCode.V
-end
-
-local raycastParams = RaycastParams.new()
-raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
-raycastParams.IgnoreWater = true
-
-local function isPartVisible(origin, targetPart, ignoreList)
-    if not origin or not targetPart then return false end
-    local direction = (targetPart.Position - origin).Unit
-    local distance = (targetPart.Position - origin).Magnitude
-    local filter = {Player.Character}
-    if ignoreList then for _, v in ipairs(ignoreList) do table.insert(filter, v) end end
-    raycastParams.FilterDescendantsInstances = filter
-    local result = workspace:Raycast(origin, direction * distance, raycastParams)
-    if not result then return true end
-    return result.Instance == targetPart or result.Instance:IsDescendantOf(targetPart.Parent)
-end
-
-local function GetClosestPointOnPart(Part, Scale)
-    local PartCFrame = Part.CFrame
-    local PartSize = Part.Size
-    local PartSizeTransformed = PartSize * (Scale / 2)
-    local MousePosition = UserInputService:GetMouseLocation()
-    local CurrentCamera = Workspace.CurrentCamera
-    local MouseRay = CurrentCamera:ViewportPointToRay(MousePosition.X, MousePosition.Y)
-    local Transformed = PartCFrame:PointToObjectSpace(MouseRay.Origin + (MouseRay.Direction * MouseRay.Direction:Dot(PartCFrame.Position - MouseRay.Origin)))
-    if mouse.Target == Part then return Vector3.new(mouse.Hit.X, mouse.Hit.Y, mouse.Hit.Z) end
-    return PartCFrame * Vector3.new(
-        math.clamp(Transformed.X, -PartSizeTransformed.X, PartSizeTransformed.X),
-        math.clamp(Transformed.Y, -PartSizeTransformed.Y, PartSizeTransformed.Y),
-        math.clamp(Transformed.Z, -PartSizeTransformed.Z, PartSizeTransformed.Z)
-    )
-end
-
-local function GetClosestPointOnPartBasic(Part)
-    if Part then
-        local MouseRay = mouse.UnitRay
-        MouseRay = MouseRay.Origin + (MouseRay.Direction * (Part.Position - MouseRay.Origin).Magnitude)
-        local Point = (MouseRay.Y >= (Part.Position - Part.Size / 2).Y and MouseRay.Y <= (Part.Position + Part.Size / 2).Y) and (Part.Position + Vector3.new(0, -Part.Position.Y + MouseRay.Y, 0)) or Part.Position
-        local Check = RaycastParams.new()
-        Check.FilterType = Enum.RaycastFilterType.Whitelist
-        Check.FilterDescendantsInstances = {Part}
-        local Ray = Workspace:Raycast(MouseRay, (Point - MouseRay), Check)
-        if mouse.Target == Part then return mouse.Hit.Position end
-        if Ray then return Ray.Position else return mouse.Hit.Position end
-    end
-end
-
 local function GetCamlockHitPosition(Target)
     if not Target or not Target.Character then return nil end
     local Character = Target.Character
-    local Humanoid = Character:FindFirstChild("Humanoid")
-    if not Humanoid then return nil end
     local NearestPart = getClosestPartToMouse(Character)
     if not NearestPart then return nil end
     local HitPosition
-    if _G.CamlockHitPart == "Closest Point" then
-        if _G.CamlockClosestPointMode == "Default" then
-            HitPosition = GetClosestPointOnPart(NearestPart, _G.CamlockClosestPointScale)
-        else
-            HitPosition = GetClosestPointOnPartBasic(NearestPart)
-        end
-    elseif _G.CamlockHitPart == "Closest Part" then
+    if _G.CamlockHitPart == "Closest Point" or _G.CamlockHitPart == "Closest Part" then
         HitPosition = NearestPart.Position
     else
         local part = Character:FindFirstChild(_G.CamlockHitPart)
@@ -986,17 +1102,14 @@ local function GetCamlockHitPosition(Target)
     if _G.CamlockPredictionEnabled then
         local RootPart = Character:FindFirstChild("HumanoidRootPart")
         if RootPart then
-            local Velocity = RootPart.Velocity
-            local PredictionVector = Vector3.new(_G.CamlockPredictionX, _G.CamlockPredictionY, _G.CamlockPredictionZ)
-            HitPosition = HitPosition + Velocity * PredictionVector
+            HitPosition = HitPosition + RootPart.Velocity * Vector3.new(_G.CamlockPredictionX, _G.CamlockPredictionY, _G.CamlockPredictionZ)
         end
     end
     return HitPosition
 end
 
 local function GetBestCamlockTarget()
-    local Closest = nil
-    local Distance = _G.CamlockFOVRadius > 0 and _G.CamlockFOVRadius or math.huge
+    local Closest, Distance = nil, _G.CamlockFOVRadius > 0 and _G.CamlockFOVRadius or math.huge
     local MousePosition = UserInputService:GetMouseLocation()
     for _, targetPlayer in ipairs(Players:GetPlayers()) do
         if targetPlayer == Player then continue end
@@ -1007,13 +1120,9 @@ local function GetBestCamlockTarget()
         local Position, OnScreen = cam:WorldToViewportPoint(HumanoidRootPart.Position)
         if not OnScreen then continue end
         if _G.CamlockConditionsForceField and Character:FindFirstChild("Forcefield") then continue end
-        if _G.CamlockConditionsVisible then
-            local localHead = Player.Character and Player.Character:FindFirstChild("Head")
-            if localHead and not isPartVisible(localHead.Position, HumanoidRootPart, {Character}) then continue end
-        end
-        if _G.CamlockConditionsCarried and IsGrabbed(targetPlayer) then continue end
         if _G.CamlockConditionsKnocked and isKnocked(Character) then continue end
         if _G.CamlockConditionsSelfKnocked and isKnocked(Player.Character) then continue end
+        if _G.CamlockConditionsCarried and IsGrabbed(targetPlayer) then continue end
         local Magnitude = (Vector2.new(Position.X, Position.Y) - MousePosition).Magnitude
         if Magnitude < Distance then Closest = targetPlayer Distance = Magnitude end
     end
@@ -1027,19 +1136,7 @@ local function IsHoldingGun()
     if not char then return false end
     local tool = char:FindFirstChildOfClass("Tool")
     if not tool then return false end
-    if tool:FindFirstChild("Ammo") then return true end
-    if tool:FindFirstChild("Magazine") then return true end
-    local gunModule = ReplicatedStorage:FindFirstChild("Modules")
-    if gunModule then
-        local gunHandler = gunModule:FindFirstChild("GunHandler")
-        if gunHandler then
-            local success, module = pcall(function() return require(gunHandler) end)
-            if success and module and module.getGun then
-                local success2, gun = pcall(function() return module.getGun(tool) end)
-                if success2 and gun then return true end
-            end
-        end
-    end
+    if tool:FindFirstChild("Ammo") or tool:FindFirstChild("Magazine") then return true end
     return false
 end
 
@@ -1049,7 +1146,7 @@ local function UpdateCamlock()
         Camlock.Target = nil
         return
     end
-    if _G.CamlockAutoToggle then
+    if _G.CamlockAutoToggle and isPC then
         if not IsHoldingGun() then
             Camlock.Active = false
             Camlock.Target = nil
@@ -1057,13 +1154,8 @@ local function UpdateCamlock()
         end
         if not Camlock.Active or not Camlock.Target or not Camlock.Target.Character then
             local target = GetBestCamlockTarget()
-            if target then
-                Camlock.Target = target
-                Camlock.Active = true
-            else
-                Camlock.Active = false
-                Camlock.Target = nil
-            end
+            if target then Camlock.Target = target Camlock.Active = true
+            else Camlock.Active = false Camlock.Target = nil end
             return
         end
     else
@@ -1080,92 +1172,98 @@ local function UpdateCamlock()
     local HitPosition = GetCamlockHitPosition(Camlock.Target)
     if not HitPosition then return end
     local Smoothing = _G.CamlockSmoothness
-    if _G.CamlockPullStrengthEnabled then
-        local RootPart = Character:FindFirstChild("HumanoidRootPart")
-        if RootPart then
-            local VelocityMagnitude = RootPart.Velocity.Magnitude
-            if VelocityMagnitude > 15 then Smoothing = _G.CamlockPullStrengthMoveValue
-            else Smoothing = _G.CamlockPullStrengthBaseValue end
-        end
-    end
-    local EasedSmoothing = TweenService:GetValue(Smoothing, Enum.EasingStyle[_G.CamlockEasingStyle], Enum.EasingDirection[_G.CamlockEasingDirection])
+    local EasedSmoothing = TweenService:GetValue(Smoothing, Enum.EasingStyle[_G.CamlockEasingStyle] or Enum.EasingStyle.Quad, Enum.EasingDirection[_G.CamlockEasingDirection] or Enum.EasingDirection.Out)
     cam.CFrame = cam.CFrame:Lerp(CFrame.new(cam.CFrame.Position, HitPosition), EasedSmoothing)
 end
 
-local function EnableCamlock()
+function EnableCamlock()
     if not _G.CamlockEnabled then return end
     local target = GetBestCamlockTarget()
     if target then
         Camlock.Target = target
         Camlock.Active = true
-        if not Camlock.Connection then Camlock.Connection = RunService.RenderStepped:Connect(UpdateCamlock) end
+        if not Camlock.Connection then
+            Camlock.Connection = RunService.RenderStepped:Connect(UpdateCamlock)
+        end
     end
 end
 
-local function DisableCamlock()
+function DisableCamlock()
     Camlock.Active = false
     Camlock.Target = nil
+    if isMobile and mobileLockBtn then
+        mobileLockBtn.BackgroundColor3 = medBrown
+        mobileLockBtn.Text = "🍮"
+    end
 end
 
-if not Camlock.Connection then Camlock.Connection = RunService.RenderStepped:Connect(UpdateCamlock) end
+if not Camlock.Connection then
+    Camlock.Connection = RunService.RenderStepped:Connect(UpdateCamlock)
+end
 
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if gameProcessed then return end
-    if _G.CamlockEnabled and not _G.CamlockAutoToggle then
-        local camlockKey = getKeyCode(_G.CamlockToggleKey)
-        if input.KeyCode == camlockKey then
-            if _G.CamlockMode == "Toggle" then
-                if Camlock.Active then DisableCamlock() else EnableCamlock() end
-            elseif _G.CamlockMode == "Hold" then EnableCamlock() end
+-- PC keybinds only
+if isPC then
+    local function getKeyCode(keyName)
+        local keyMap = {A=Enum.KeyCode.A,B=Enum.KeyCode.B,C=Enum.KeyCode.C,D=Enum.KeyCode.D,E=Enum.KeyCode.E,F=Enum.KeyCode.F,G=Enum.KeyCode.G,H=Enum.KeyCode.H,I=Enum.KeyCode.I,J=Enum.KeyCode.J,K=Enum.KeyCode.K,L=Enum.KeyCode.L,M=Enum.KeyCode.M,N=Enum.KeyCode.N,O=Enum.KeyCode.O,P=Enum.KeyCode.P,Q=Enum.KeyCode.Q,R=Enum.KeyCode.R,S=Enum.KeyCode.S,T=Enum.KeyCode.T,U=Enum.KeyCode.U,V=Enum.KeyCode.V,W=Enum.KeyCode.W,X=Enum.KeyCode.X,Y=Enum.KeyCode.Y,Z=Enum.KeyCode.Z}
+        return keyMap[keyName] or Enum.KeyCode[keyName] or Enum.KeyCode.C
+    end
+
+    UserInputService.InputBegan:Connect(function(input, gp)
+        if gp then return end
+        if _G.CamlockEnabled and not _G.CamlockAutoToggle then
+            local camlockKey = getKeyCode(_G.CamlockToggleKey)
+            if input.KeyCode == camlockKey then
+                if _G.CamlockMode == "Toggle" then
+                    if Camlock.Active then DisableCamlock() else EnableCamlock() end
+                elseif _G.CamlockMode == "Hold" then EnableCamlock() end
+            end
         end
-    end
-    if _G.CamlockEnabled and _G.CamlockUseRMB and not _G.CamlockAutoToggle then
-        if input.UserInputType == Enum.UserInputType.MouseButton2 then
-            if _G.CamlockMode == "Toggle" then
-                if Camlock.Active then DisableCamlock() else EnableCamlock() end
-            elseif _G.CamlockMode == "Hold" then EnableCamlock() end
+        if _G.CamlockEnabled and _G.CamlockUseRMB and not _G.CamlockAutoToggle then
+            if input.UserInputType == Enum.UserInputType.MouseButton2 then
+                if _G.CamlockMode == "Toggle" then
+                    if Camlock.Active then DisableCamlock() else EnableCamlock() end
+                elseif _G.CamlockMode == "Hold" then EnableCamlock() end
+            end
         end
-    end
-end)
+    end)
 
-UserInputService.InputEnded:Connect(function(input)
-    if _G.CamlockEnabled and not _G.CamlockAutoToggle then
-        local camlockKey = getKeyCode(_G.CamlockToggleKey)
-        if input.KeyCode == camlockKey and _G.CamlockMode == "Hold" then DisableCamlock() end
-    end
-    if _G.CamlockEnabled and _G.CamlockUseRMB and not _G.CamlockAutoToggle then
-        if input.UserInputType == Enum.UserInputType.MouseButton2 and _G.CamlockMode == "Hold" then DisableCamlock() end
-    end
-end)
+    UserInputService.InputEnded:Connect(function(input)
+        if _G.CamlockEnabled and not _G.CamlockAutoToggle then
+            local camlockKey = getKeyCode(_G.CamlockToggleKey)
+            if input.KeyCode == camlockKey and _G.CamlockMode == "Hold" then DisableCamlock() end
+        end
+        if _G.CamlockEnabled and _G.CamlockUseRMB and not _G.CamlockAutoToggle then
+            if input.UserInputType == Enum.UserInputType.MouseButton2 and _G.CamlockMode == "Hold" then DisableCamlock() end
+        end
+    end)
+end
 
-Players.PlayerRemoving:Connect(function(targetPlayer)
-    if Camlock.Target == targetPlayer then DisableCamlock() end
+Players.PlayerRemoving:Connect(function(p)
+    if Camlock.Target == p then DisableCamlock() end
 end)
 
 Player.CharacterAdded:Connect(function()
     DisableCamlock()
 end)
 
+-- Zoom logic
 local targetZoom = _G.ZoomMax
-
 task.spawn(function()
     while true do
         if _G.ZoomRateEnabled then
             if _G.ZoomOnlyWhenCamlocked and not Camlock.Active then
-                task.wait(0.2)
+                task.wait(0.25)
             else
                 if targetZoom >= _G.ZoomMax then
                     targetZoom = _G.ZoomMin
-                    local pauseTime = math.max(_G.ZoomStayMin / math.max(_G.ZoomFrequency, 0.1), 0.01)
-                    task.wait(pauseTime)
+                    task.wait(math.max(_G.ZoomStayMin / math.max(_G.ZoomFrequency, 0.1), 0.05))
                 else
                     targetZoom = _G.ZoomMax
-                    local pauseTime = math.max(_G.ZoomStayMax / math.max(_G.ZoomFrequency, 0.1), 0.01)
-                    task.wait(pauseTime)
+                    task.wait(math.max(_G.ZoomStayMax / math.max(_G.ZoomFrequency, 0.1), 0.05))
                 end
             end
         else
-            task.wait(0.2)
+            task.wait(0.25)
         end
     end
 end)
@@ -1173,49 +1271,16 @@ end)
 RunService.RenderStepped:Connect(function(dt)
     if not _G.ZoomRateEnabled then return end
     if _G.ZoomOnlyWhenCamlocked and not Camlock.Active then return end
-
     local currentMin = Player.CameraMinZoomDistance
     local currentMax = Player.CameraMaxZoomDistance
-
     local currentTarget = math.clamp(targetZoom, _G.ZoomMin, _G.ZoomMax)
-
-    local newZoomMin = currentMin + (currentTarget - currentMin) * math.clamp(dt * _G.ZoomSpeed, 0, 1)
-    local newZoomMax = currentMax + (currentTarget - currentMax) * math.clamp(dt * _G.ZoomSpeed, 0, 1)
-
-    Player.CameraMinZoomDistance = newZoomMin
-    Player.CameraMaxZoomDistance = newZoomMax
+    Player.CameraMinZoomDistance = currentMin + (currentTarget - currentMin) * math.clamp(dt * _G.ZoomSpeed, 0, 1)
+    Player.CameraMaxZoomDistance = currentMax + (currentTarget - currentMax) * math.clamp(dt * _G.ZoomSpeed, 0, 1)
 end)
 
-UserInputService.InputChanged:Connect(function(input, gameProcessed)
-    if input.UserInputType == Enum.UserInputType.MouseWheel then
-        if not _G.ZoomRateEnabled then
-            return
-        end
-        if _G.ZoomOnlyWhenCamlocked and not Camlock.Active then
-            return
-        end
-        local scrollZ = input.Position.Z
-        if scrollZ > 0 then
-            targetZoom = math.max(_G.ZoomMin, targetZoom - _G.ZoomSpeed)
-        else
-            targetZoom = math.min(_G.ZoomMax, targetZoom + _G.ZoomSpeed)
-        end
-    end
-end)
-
-local _0x9ba38e
-_0x9ba38e = hookfunction(math.random, function(...)
-    local args = {...}
-    if checkcaller() then return _0x9ba38e(...) end
-    if (#args == 0) or (args[1] == -0.05 and args[2] == 0.05) or (args[1] == -0.1) or (args[1] == -0.05) then
-        return _0x9ba38e(...) * (_G.BulletSpreadAmount / 100)
-    end
-    return _0x9ba38e(...)
-end)
-
+-- Drag UI
 local dragging = false
-local dragStartInput = nil
-local startFramePos = nil
+local dragStartInput, startFramePos
 
 cardContainer.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
@@ -1232,11 +1297,6 @@ cardContainer.InputBegan:Connect(function(input)
             dragging = true
             dragStartInput = input.Position
             startFramePos = cardContainer.Position
-            input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    dragging = false
-                end
-            end)
         end
     end
 end)
@@ -1244,9 +1304,7 @@ end)
 UserInputService.InputChanged:Connect(function(input)
     if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
         local delta = input.Position - dragStartInput
-        local newX = startFramePos.X.Offset + delta.X
-        local newY = startFramePos.Y.Offset + delta.Y
-        cardContainer.Position = UDim2.new(startFramePos.X.Scale, newX, startFramePos.Y.Scale, newY)
+        cardContainer.Position = UDim2.new(startFramePos.X.Scale, startFramePos.X.Offset + delta.X, startFramePos.Y.Scale, startFramePos.Y.Offset + delta.Y)
     end
 end)
 
@@ -1256,14 +1314,11 @@ UserInputService.InputEnded:Connect(function(input)
     end
 end)
 
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if input.KeyCode == Enum.KeyCode.RightShift then
-        cardContainer.Visible = not cardContainer.Visible
-    end
-end)
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if gameProcessed then return end
+-- Toggle UI (RightShift works on both, but mobile mainly uses the UI)
+UserInputService.InputBegan:Connect(function(input, gp)
     if input.KeyCode == Enum.KeyCode.RightShift then
         screenGui.Enabled = not screenGui.Enabled
     end
 end)
+
+print("[livyii.main] Loaded | Platform: " .. (isMobile and "Mobile" or "PC") .. " | Pompompurin Theme 🍮")
