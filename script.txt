@@ -318,17 +318,17 @@ end)
 
 local ColorPresets = {
     ["Pompompurin"] = {
-        AccentColor = Color3.fromRGB(255, 220, 80),
-        DimColor = Color3.fromRGB(200, 170, 100),
-        HighlightColor = Color3.fromRGB(255, 245, 180),
-        BgColor = Color3.fromRGB(25, 20, 10),
-        SectionBg = Color3.fromRGB(35, 28, 15),
+        AccentColor = Color3.fromRGB(255, 200, 60),
+        DimColor = Color3.fromRGB(180, 140, 80),
+        HighlightColor = Color3.fromRGB(255, 240, 160),
+        BgColor = Color3.fromRGB(255, 248, 220),
+        SectionBg = Color3.fromRGB(255, 245, 210),
         TrayColor = Color3.fromRGB(255, 210, 90),
-        TextColor = Color3.fromRGB(255, 245, 200),
-        DimTextColor = Color3.fromRGB(160, 130, 70),
-        BorderColor = Color3.fromRGB(120, 80, 40),
-        DarkBg = Color3.fromRGB(15, 12, 5),
-        HeaderBg = Color3.fromRGB(30, 22, 10)
+        TextColor = Color3.fromRGB(90, 50, 20),
+        DimTextColor = Color3.fromRGB(140, 100, 50),
+        BorderColor = Color3.fromRGB(200, 160, 80),
+        DarkBg = Color3.fromRGB(255, 250, 230),
+        HeaderBg = Color3.fromRGB(255, 235, 170)
     },
     ["Default"] = {
         AccentColor = Color3.fromRGB(230, 180, 255),
@@ -816,6 +816,7 @@ MainBody.Name = "MainBody"
 MainBody.Size = UDim2.new(1, -2, 1, -2)
 MainBody.Position = UDim2.new(0, 1, 0, 1)
 MainBody.BackgroundColor3 = ColorPresets[_G.CurrentTheme].BgColor
+MainBody.BackgroundTransparency = 0.25
 MainBody.BorderColor3 = ColorPresets[_G.CurrentTheme].BorderColor
 MainBody.BorderSizePixel = 1
 MainBody.ClipsDescendants = true
@@ -833,9 +834,10 @@ BgDecal.Position = UDim2.new(0, 0, 0, 0)
 BgDecal.BackgroundTransparency = 1
 BgDecal.Image = "rbxassetid://1164155920728"
 BgDecal.ScaleType = Enum.ScaleType.Crop
-BgDecal.ImageTransparency = 0.35
+BgDecal.ImageTransparency = 0.1
 BgDecal.ZIndex = 0
 BgDecal.Parent = MainBody
+BgDecal.Active = false
 
 local HeaderBar = Instance.new("Frame")
 HeaderBar.Name = "HeaderBar"
@@ -1158,7 +1160,12 @@ local function ApplyTheme(themeName)
     if InnerSpacer then InnerSpacer.BackgroundColor3 = theme.DarkBg end
     if MainBody then
         MainBody.BackgroundColor3 = theme.BgColor
+        MainBody.BackgroundTransparency = 0.3
         MainBody.BorderColor3 = theme.BorderColor
+    end
+    if BgDecal then
+        BgDecal.ImageTransparency = 0.1
+        BgDecal.Visible = true
     end
     if HeaderBar then HeaderBar.BackgroundColor3 = theme.HeaderBg end
     if TitleText then TitleText.TextColor3 = theme.TextColor end
